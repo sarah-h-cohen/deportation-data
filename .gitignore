@@ -6,4 +6,5 @@ documentation/background/
 working/
 .quarto
 utilities/
+*_cache/
 
