@@ -1,0 +1,17 @@
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+lubridate
+glue
+janitor
+readxl
+here
+googlesheets4
+GGally
+skimr

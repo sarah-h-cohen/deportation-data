@@ -1,0 +1,19 @@
+project:
+  output-dir: _output
+# special doc format for the documentation.
+format:
+  html:
+    toc: true
+    callout-icon: false
+    navbar:
+      background: primary
+      left:
+        - text: "Home"
+          href: documentation.qmd
+        - docs-arrests.qmd
+        - docs-backgrounder.qmd
+    grid:
+      sidebar-width: 200px
+      body-width: 1000px
+      margin-width: 200px
+

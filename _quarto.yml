@@ -1,0 +1,29 @@
+project:
+  type: default
+
+# the rest of the info is in _metadata under documentation
+format:
+  html:
+    # callout-icon: false
+    code-overflow: wrap
+    grid:
+      sidebar-width: 100px
+      body-width: 1200px
+      margin-width: 100px
+      gutter-width: 1.5rem
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+  cache: false
+  eval: true
+
+
+engine:
+  knitr
+
+extensions:
+  - _extensions/scdefault
+  - _extensions/coatless-quarto/custom-callout

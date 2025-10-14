@@ -1,0 +1,176 @@
+---
+author: Sarah Cohen
+date: last-modified
+title: Untitled
+subtitle: ""
+format:
+  scdefault-html: default
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: true
+  cache: true
+  include: true
+  eval: true
+
+engine: knitr
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| echo: fenced
+#| error: true
+
+# assumes pacman has been installed already
+# typical packages
+pacman::p_load("tidyverse", "glue", "lubridate", "janitor", "readxl", "here", "googlesheets4")
+here::i_am("programs/clean/01-arrest-checks.qmd")
+
+
+#additional packages here
+library(GGally)
+library(skimr)
+library(forcats)
+
+```
+
+
+Read the original xls file:
+
+```{r}
+#| label: get-arrest-rawdata
+
+
+orig_xls <- read_excel(here("data/raw/2025-ICLI-00019_2024-ICFO-39357_ERO Admin Arrests_LESA-STU_FINAL Redacted_raw.xlsx"),
+                      skip=6,
+                      col_types = c("guess", "text", "text", "text", "text", "text", "text", "text", "text", "text",
+                                      "guess", "text", "text", "guess", "skip", "guess", "text",
+                                      "text", "text", "skip", "skip", "skip", "text")) |>
+            clean_names() |>
+            rowid_to_column(var="orig_row_id") |>
+            # county is always empty
+            select ( - apprehension_county)
+
+
+glimpse(orig_xls) |>  reactable::reactable()
+
+create_dictionary (orig_xls, file=here("arrest_datadictionary.xlsx"))
+
+```
+
+Check for duplicates. The Deportation Data Project says there are several ways to check.
+
+1. There are a handful of what appear to be true duplicates -- those that are the same across each field.
+
+```{r}
+#| label: pointblank-report
+
+
+
+skim_results <- skimr::skim(notruedupes_xls) |>
+  mutate ( label = "",
+          obs = coalesce (character.n_unique, POSIXct.n_unique)
+          )
+
+orig_xls |>  mutate ( year = year(departed_date)) |> filter ( year >= 2023) |> skim ( departed_date)
+
+count ( orig_xls, final_program)
+
+```
+```{r}
+
+notruedupes_xls <- distinct ( orig_xls)
+# remove 87 rows as of October 2025 (July data)
+
+```
+
+
+2. There are also some that are the same person on the same day. Here, I should check the time and see what they are. There may be stories in these.
+
+```{r}
+
+same_day_same_person <- notruedupes_xls |>  get_dupes( c( apprehension_date, unique_identifier))
+
+
+```
+
+These are way less clear. In some cases, it appears that a group of people without unique identifiers had the same thing happen at the same time. (Their years of birth, sex and country of origin can be different, but the time and date are the same.) In others, it appears that there are placeholder activities. I don't know what the categories mean, so I can't tell what to do with them.
+
+## Check frequency / crosstab of categories
+
+
+Visualize crosstabs of the data. GGPAIRS is one way to do that.
+
+I have to reduce some of the categories to do that.
+
+A 2018 paper from the Migration Policy Institute combined programs like this:
+
+::: blockquote
+Arrests were categorized based on the ICE ERO program to which the arresting ICE officer was assigned. Criminal Alien Program (CAP) and
+287(g) arrests were grouped together as “criminal justice system” arrests, with the bulk of these being CAP arrests. “At-large arrests” included
+Fugitive Operations, Violent Criminal Alien Sections, Law Enforcement Area Response Units, Mobile Criminal Alien Teams, and Joint
+Criminal Alien Response Teams; the bulk of these were Fugitive Operations Team arrests. About 7-10 percent of arrests could not be coded
+as “criminal justice system” or “at-large” arrests because they were coded as “detained docket,” “nondetained docket,” or using other terms
+that could not easily be classified. Arrests are coded based on the permanent responsibilities of the arresting officer, and officers are often
+detailed from other responsibilities to assist with at-large arrests during major operations, or to CAP arrests during CAP surges in federal,
+state, or local facilities. As a result, the assignment of arrests to the different ICE programs is necessarily imprecise
+:::
+
+
+[Non-detained docket](https://www.borderreport.com/immigration/explainer-how-immigrants-end-up-on-ices-non-detained-docket/): Refers to people ICE believes are removable but are not in ICE custody. These could be criminals in detention elsewhere, or they could be people out in the community. They could also be in alternatives to detention. A foreign-born non-citizen who comes into the country seeking asylum and has pending immigration proceedings are place into the non-detained docket.  Or they can be someone here legally if they have been convicted of a crime or have a pending criminal case against them.  In addition, they can be fugitives -- we're not sure if they're still in the country, but ICE thinks they are. They can stay on the list indefinitely.
+
+If someone is released from prison for a really serious crime, say homicide, they have to go into ICE's mandatory detention program. The exception is that they can't be kept there indefinitely, and might have to be released if their country won't accept them.
+
+July report from National Immigration Forum: [Explainer: Immigration Removal Proceedings and Expanded Mandatory Detention in the U.S.](https://forumtogether.org/article/explainer-immigration-removal-proceedings-and-expanded-mandatory-detention-in-the-u-s/)
+
+
+How to combine these:
+ERO Criminal Alien Program = people who were serving time in another jurisdiction for a crime.
+Fugitive Operations: 2nd biggest.
+Non-Detained Docket Control and Detained Docket Control? I have no idea what these mean.
+
+Groupings:
+
+```
+ final_program_group                0         1       3   3     0        1          0
+ 5 apprehension_method                0         1       7  43     0       27      final_program_group                0         1       3   3     0        1          0
+ 5 apprehension_method                0         1       7  43     0       27
+```
+
+
+```{r}
+#| label: chart-discrete
+
+skim( orig_xls)
+
+count(orig_xls, final_program, sort=TRUE)
+
+Criminal alien = 4 categories
+Docket control = 2 categories
+
+
+
+ggpairs( data=orig_xls, columns=c("final_program", "apprehension_method", "apprehension_criminality", "case_category") )
+
+
+
+```
+
+
+## Reactable table example
+
+Here, I'll put something to read in the custom theme, and then make a sample table using it. But for now, I'll leave this blank
+
+This is an example of a pretty complicated Reactable table, but it works for the purpose of setting up a shell. The theme is in the utilities folder.
+
+
+
+
+
+## ggplot defaults
+
+Here, I'll add in some ggplot defaults, but for now I'll leave this blank.
+
+

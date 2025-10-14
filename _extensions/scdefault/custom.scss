@@ -1,0 +1,108 @@
+//custom definitions for template based on sandstone Quarto
+// at https://github.com/quarto-dev/quarto-cli/blob/main/src/resources/formats/html/bootstrap/themes/sandstone.scss
+
+// Either scss:defaults or scss:rules has to be a section for it to know that these are new definitions.
+// other options are mixins, functions.
+
+// scss:defaults define custom basic styling variables, color schemes and fonts.
+// scss:rules contribute specific element styling, custom classes and layout adjustments.
+
+/*-- scss:defaults --*/
+
+
+
+// Import both Lato and Roboto
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,200;0,400;0,600;1,200;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Phudu:500');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght0,200;0,400;0,600;1,200;1,400;1,600&display=swap');
+
+// color system
+// redefine some of the colors in the original sandstone theme
+
+$indigo: #2e507a !default;
+$green: #afe1af !default;
+
+$theme-teal: #50847b;
+$theme-blue: #76aadb;
+$theme-red: #ad0000;
+$theme-bg-subtle: #e7f1ff50;  /* light grayish blue */
+$theme-light:  #f8f5f0 !default; /* same as gray-200 */
+$theme-dark:   #3e3f3a !default; /* same as gray-800 */
+
+
+// Tables
+
+$tbl-header-sort:  $theme-light !default;
+$tbl-header-bg: #2e507a;
+$tbl-header-col: $theme-light;
+$tbl-striped-col: $theme-bg-subtle;
+
+// Headings
+$headings-color: #325d88 ;  /* same as $blue or primary */
+$headings-font-family: "Phudu";
+
+// Links
+
+$link-color:   $theme-red;
+
+// Fonts
+// Sandstone default is Roboto. It isn't being imported here, though.
+
+$font-family-sans-serif:      "Lato", Roboto, -apple-system,  "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$font-size-root: 16px;
+$font-family-monospace: "Fira Mono", "Consolas", "Courier New", monospace;
+
+// Grid sizes: Don't use as much for sidebar and margin - not really using them.
+
+/* Define these in the default template so they can be changed later on. This should be the same thing.
+$grid-sidebar-width: 100px !default;
+$grid-body-width: 1200px !default;
+$grid-margin-width: 100px !default;
+$grid-column-gutter-width: 1.5rem !default;
+*/
+
+// code block defaults
+$code-block-border-left: $theme-blue;
+$code-block-bg: $theme-bg-subtle;
+
+
+
+/*-- scss:rules --*/
+
+.footnote {
+  font-size: smaller;
+  font-variant: small-caps;
+  width: 100%;
+}
+
+// Reactable defaults
+
+.rt-header {
+  background-color: $tbl-header-bg;
+  border-bottom-width: 1px;
+  color: $tbl-header-col;
+  font-variant: small-caps;
+  font-size: .9rem;
+
+}
+
+.rt-header[aria-sort]:hover,
+.rt-header[aria-sort]:focus {
+  color: $tbl-header-sort;
+}
+
+// Special divs and defs
+
+.confidential {
+  background-color: $headings-color;
+  font-family: $headings-font-family !important;
+  border-radius: 0.375rem;
+  text-align: center;
+  color: $theme-light;
+}
+
+//  fit more text in the table.
+table td, table th {
+  font-size: smaller;
+}
+
