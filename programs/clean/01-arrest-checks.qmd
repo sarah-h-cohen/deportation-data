@@ -1,29 +1,37 @@
 ---
 author: Sarah Cohen
 date: last-modified
-title: Untitled
+title: Arrest table cleanup
 subtitle: ""
 format:
-  scdefault-html: default
+  scdefault-html:
+    code-fold: show
+    toc: false
 execute:
-  echo: false
-  warning: false
-  message: false
+  echo: fenced
+  warning: true
+  message: true
   error: true
-  cache: true
-  include: true
+  cache: false
   eval: true
 
 engine: knitr
 ---
+
+
+
+The arrests table cleanup is done in this document. See the documentation for details on why and how it ends up.
 
 ```{r}
 #| label: setup
 #| message: false
 #| echo: fenced
 #| error: true
+#| code-fold: true
 
 # assumes pacman has been installed already
+
+
 # typical packages
 pacman::p_load("tidyverse", "glue", "lubridate", "janitor", "readxl", "here", "googlesheets4")
 here::i_am("programs/clean/01-arrest-checks.qmd")
@@ -34,143 +42,167 @@ library(GGally)
 library(skimr)
 library(forcats)
 
+
+orig_xl_date <- mdy("10/14/2025")
+
 ```
 
+::: confidential
+Not for publication
+:::
 
-Read the original xls file:
+Data Last Updated: `{r} format(orig_xl_date, "%B %e, %Y")`
+
+## Read original Excel file from Deportation Data Project
+
+The original Excel file has 19 columns that have to be imported with variable types to take care of Zip codes, dates and missing values. Reading everything as text has two problems: Lack of precision in numbers, and dates converted to serial numbers. The data header is at row 7 and the data starts row 8.
+
+Two collumns are dropped because they add no information: `final_program_group` is always "ICE", `apprehension_county` is always missing. This could change in the future.
+
+I renamed the columns to a) lowercase everything; b) replace spaces and special characters with underscores.  (It uses the `janitor::clean_names()` function, so it's always done the same way.
+
 
 ```{r}
 #| label: get-arrest-rawdata
+#| message: true
+#| warning: true
 
+var_types <- c ("guess", rep("text",9 ), "guess", "text", "text", "guess", "skip", "guess", rep("text", 3),
+              rep("skip", 3), "text")
 
-orig_xls <- read_excel(here("data/raw/2025-ICLI-00019_2024-ICFO-39357_ERO Admin Arrests_LESA-STU_FINAL Redacted_raw.xlsx"),
+orig_xls <- read_excel(here(
+                      "data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_AdminArrests_07312025.xlsx"
+                      ),
                       skip=6,
-                      col_types = c("guess", "text", "text", "text", "text", "text", "text", "text", "text", "text",
-                                      "guess", "text", "text", "guess", "skip", "guess", "text",
-                                      "text", "text", "skip", "skip", "skip", "text")) |>
+                      col_types = var_types
+                      )  |>
             clean_names() |>
             rowid_to_column(var="orig_row_id") |>
             # county is always empty
-            select ( - apprehension_county)
+            select ( - c(apprehension_county, final_program_group))
 
 
-glimpse(orig_xls) |>  reactable::reactable()
-
-create_dictionary (orig_xls, file=here("arrest_datadictionary.xlsx"))
 
 ```
 
-Check for duplicates. The Deportation Data Project says there are several ways to check.
 
-1. There are a handful of what appear to be true duplicates -- those that are the same across each field.
+## Basic cleanup
+
+At the end of this, I'll change the order of the columns so they make a little more sense.
+
+#### 1. Remove true dupes
 
 ```{r}
-#| label: pointblank-report
+#| label: remove-dupes
 
+deduped_xl <- orig_xls |>
+  distinct ( pick (apprehension_date:unique_identifier))
 
-
-skim_results <- skimr::skim(notruedupes_xls) |>
-  mutate ( label = "",
-          obs = coalesce (character.n_unique, POSIXct.n_unique)
-          )
-
-orig_xls |>  mutate ( year = year(departed_date)) |> filter ( year >= 2023) |> skim ( departed_date)
-
-count ( orig_xls, final_program)
-
-```
-```{r}
-
-notruedupes_xls <- distinct ( orig_xls)
-# remove 87 rows as of October 2025 (July data)
 
 ```
 
+#### 2. Date columns
 
-2. There are also some that are the same person on the same day. Here, I should check the time and see what they are. There may be stories in these.
+Convert date-only to date; create new column with date only from those with time.
 
 ```{r}
 
-same_day_same_person <- notruedupes_xls |>  get_dupes( c( apprehension_date, unique_identifier))
+deduped_date_fix <-
+  deduped_xl |>
+  mutate  ( apprehension_date_part = as_date( apprehension_date) ,
+            across ( c(final_order_date, departed_date), as_date)
+  )
+
+
+
+```
+
+
+## Create convenience columns
+
+I've created a spreadsheet of lookup values that is easier to use than copying and pasting. It also ensures that I use the same lookups for different tables with the same column definitions.
+
+Read the data lookup sheet (easier than copying and pasting into the code):
+
+```{r}
+#| label: get-lookups
+
+lookup_tables <- read_excel (here("documentation/background/master_data_dictionary_lookups.xlsx"),
+                            sheet="lookups",
+                            na= c("", "N/A") )
 
 
 ```
 
-These are way less clear. In some cases, it appears that a group of people without unique identifiers had the same thing happen at the same time. (Their years of birth, sex and country of origin can be different, but the time and date are the same.) In others, it appears that there are placeholder activities. I don't know what the categories mean, so I can't tell what to do with them.
+### Lookup table applications
 
-## Check frequency / crosstab of categories
+In practice, I worked on the lookup tables one at a time. The decisions were made based on the combinations I saw and other peoples' coding. See the documentation for more detail on individual column definitions.
 
-
-Visualize crosstabs of the data. GGPAIRS is one way to do that.
-
-I have to reduce some of the categories to do that.
-
-A 2018 paper from the Migration Policy Institute combined programs like this:
-
-::: blockquote
-Arrests were categorized based on the ICE ERO program to which the arresting ICE officer was assigned. Criminal Alien Program (CAP) and
-287(g) arrests were grouped together as “criminal justice system” arrests, with the bulk of these being CAP arrests. “At-large arrests” included
-Fugitive Operations, Violent Criminal Alien Sections, Law Enforcement Area Response Units, Mobile Criminal Alien Teams, and Joint
-Criminal Alien Response Teams; the bulk of these were Fugitive Operations Team arrests. About 7-10 percent of arrests could not be coded
-as “criminal justice system” or “at-large” arrests because they were coded as “detained docket,” “nondetained docket,” or using other terms
-that could not easily be classified. Arrests are coded based on the permanent responsibilities of the arresting officer, and officers are often
-detailed from other responsibilities to assist with at-large arrests during major operations, or to CAP arrests during CAP surges in federal,
-state, or local facilities. As a result, the assignment of arrests to the different ICE programs is necessarily imprecise
-:::
-
-
-[Non-detained docket](https://www.borderreport.com/immigration/explainer-how-immigrants-end-up-on-ices-non-detained-docket/): Refers to people ICE believes are removable but are not in ICE custody. These could be criminals in detention elsewhere, or they could be people out in the community. They could also be in alternatives to detention. A foreign-born non-citizen who comes into the country seeking asylum and has pending immigration proceedings are place into the non-detained docket.  Or they can be someone here legally if they have been convicted of a crime or have a pending criminal case against them.  In addition, they can be fugitives -- we're not sure if they're still in the country, but ICE thinks they are. They can stay on the list indefinitely.
-
-If someone is released from prison for a really serious crime, say homicide, they have to go into ICE's mandatory detention program. The exception is that they can't be kept there indefinitely, and might have to be released if their country won't accept them.
-
-July report from National Immigration Forum: [Explainer: Immigration Removal Proceedings and Expanded Mandatory Detention in the U.S.](https://forumtogether.org/article/explainer-immigration-removal-proceedings-and-expanded-mandatory-detention-in-the-u-s/)
-
-
-How to combine these:
-ERO Criminal Alien Program = people who were serving time in another jurisdiction for a crime.
-Fugitive Operations: 2nd biggest.
-Non-Detained Docket Control and Detained Docket Control? I have no idea what these mean.
-
-Groupings:
-
-```
- final_program_group                0         1       3   3     0        1          0
- 5 apprehension_method                0         1       7  43     0       27      final_program_group                0         1       3   3     0        1          0
- 5 apprehension_method                0         1       7  43     0       27
-```
+(This actually works one at a time, not as one big process, so it could be slow on bigger tables. It happens that the arrest table isn't that big and isn't updated very often.)
 
 
 ```{r}
-#| label: chart-discrete
 
-skim( orig_xls)
+# function to create lookups
+# df:       the data frame to work on as data frame
+# apply_to: name of column that should be looked up as character value
+# new_name: name of the column I want created as character value
+# Requires: lookup_table read in previous step
 
-count(orig_xls, final_program, sort=TRUE)
+lkp_table_values <- function ( df,
+                              apply_to,
+                              new_name)  {
 
-Criminal alien = 4 categories
-Docket control = 2 categories
+  # lookup_tables exists, and has columns `initial value`, `recode` and `varname`
+  # df is a data frame with a column that matches the apply_to argument
+  lkp_filtered = lookup_tables |>
+    filter ( varname == apply_to)
+
+  lkp_selected = lkp_filtered |>
+    select ( lkp_val = `initial value`,
+            # this is how to apply a char value as a column name.
+            !!new_name := recode)
+
+  return_df = df |>
+    left_join ( lkp_selected,
+                join_by (!!sym(apply_to)  == lkp_val ) )
+
+  return (return_df)
+
+  }
+
+```
+
+Apply the lookup table to the original:
+
+```{r}
+#| label: collapse-final-program
+
+list_of_vars <- c("final_program" = "final_program_type",
+                    "apprehension_method" = "apprehension_method_type")
+
+working_table <- deduped_date_fix
+
+for ( n in names(list_of_vars) ) {
+  working_table = lkp_table_values ( working_table, n , list_of_vars[n])
+}
+
+#working_table <- lkp_table_values( deduped_date_fix, "final_program", "final_program_type")
+#working_table <- working_table (arrest_prog_types , "apprehension_method", "apprehension_method_type")
+#working_table <- working_table ()
 
 
 
-ggpairs( data=orig_xls, columns=c("final_program", "apprehension_method", "apprehension_criminality", "case_category") )
-
-
+# skim(working_table)
 
 ```
 
 
-## Reactable table example
+#### Case category and case status
 
-Here, I'll put something to read in the custom theme, and then make a sample table using it. But for now, I'll leave this blank
+These seem to have something to do with one another, since they have the same number of missing values. Try visualizing it to see what is happening
 
-This is an example of a pretty complicated Reactable table, but it works for the purpose of setting up a shell. The theme is in the utilities folder.
-
-
+```{r}
 
 
-
-## ggplot defaults
-
-Here, I'll add in some ggplot defaults, but for now I'll leave this blank.
-
-
+```

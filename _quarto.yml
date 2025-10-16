@@ -1,29 +1,32 @@
-project:
-  type: default
+author: Sarah Cohen
+date: last-modified
+title: Untitled
+subtitle: ""
 
-# the rest of the info is in _metadata under documentation
 format:
-  html:
-    # callout-icon: false
+  scdefault-html:   #/ requires _quarto.yml in root of project folder
     code-overflow: wrap
     grid:
       sidebar-width: 100px
       body-width: 1200px
       margin-width: 100px
       gutter-width: 1.5rem
+    toc: true
 
 execute:
-  echo: true
+  echo: false
   warning: false
   message: false
   error: true
   cache: false
+  include: true
   eval: true
+
+extensions:
+  - _extensions/scdefault
+  - _extensions/coatless-quarto/custom-callout
 
 
 engine:
   knitr
 
-extensions:
-  - _extensions/scdefault
-  - _extensions/coatless-quarto/custom-callout

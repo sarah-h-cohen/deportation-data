@@ -1,14 +1,18 @@
 ---
-author: Sarah Cohen
-date: last-modified
-title: Overview notes on Big Local Deportation Data project
+title: BLN immigration project
 subtitle: ""
+format:
+  scdefault-html:
+    code-overflow: wrap
 # remaining customizations in _metadata.yml
 ---
 
 ::: confidential
 NOT FOR PUBLICATION
 :::
+
+This website documents BLN's work on the Deportation Data Project's collection of ICE datasets.
+
 
 ## Immigration data projects in the wild
 
@@ -133,83 +137,8 @@ it.
 
 * Tim Henderson, Stateline
 
+* Anthony DeBarris, WSJ, who analyzed the Deportation Data Project's datasets in context of other available sources, at <https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&reflink=desktopwebshare_permalink>
 
-## Datasets
-
-The original data was downloaded from the Deportation Data Project, as of Oct. 13, 2025 (the date of this documentation). I'll update it when they get a new batch. I downloaded the original, not cleaned, data.
-
-::: panel-tabset
-
-## All datasets
-
-The deportation data project posts five datasets: encounters, arrests,
-detainers, detentions, and removals. They each have their own issues,
-but some cross all of the datasets. They also have a list of detention
-sites that can be used for mapping.
-
-In the `data/raw` folder, I've made an exact copy of the data that the
-project posts. (Most recent in most cases.) There is also a copy that I
-can use for hand-editing, with more descriptive data names. That's in
-the `data/processed` folder, even though it's raw.
-
-The project is pretty good about doing basic vetting of the datasets
-when they arrive. For example, it immediately post the removals data
-from July, when they found a serious flaw. They also post when each
-dataset is usable as history.
-
-The data originally is extracted from DHS's Enforcement Integrated Database, or EID, which is the back end to the department's ENFORCE application. It's supposed to hold details on the entire enforcement infrastructure, and is supposed to contain information from all of the enforcement agencies (I think).
-
-There are some things to remember about all of the datasets, and some
-specific to individual ones.
-
-Outstanding questions are shown in a callout under each section.
-
-There are some definitions that are still meaningful in the paper "[Piecing together the US Immigration Detention Puzzle One Night at a Time](https://journals.sagepub.com/doi/reader/10.1177/233150241500300402), Donald Kerwin and Daniela Alulema (Center for Migration Studies), Journal on Migration and Human Security, 2012.
-
-### Most serious crime categories
-
-It's really unclear what they are using as the "most serious" crime category for the purpose of deportation. There are a couple of documents that can help:
-
-1. TRAC, at some point, [got a list of offense codes from DHS](https://tracreports.org/immigration/reports/330/include/DocumentReleased_13-15734_Criminal_Offense_Level_Business_Rules.pdf) that lists the 'level' of each crime, as 1, 2, or 3. We can see there that illegal entry to the US is the lowest crime category. But it doesn't really help within the levels. (These were based on the old Morton memo, and haven't been in use for a long time, I don't think.)
-
-2. The [American Immigration Council examined the "Most serious charge"]https://www.americanimmigrationcouncil.org/wp-content/uploads/2025/01/enforcement_overdrive_a_comprehensive_assessment_of_ices_criminal_alien_program_final.pdf) in the Criminal Alien Program that gives some detail on what they consider more and less serious.
-
-Also from the American Immigration Council:
-
-::: blockquote
-
-“Aggravated felony” is a term of art used to describe a category of offenses carrying particularly harsh immigration consequences for noncitizens convicted of such crimes. Regardless of their immigration status, noncitizens who have been convicted of an “aggravated felony” are prohibited from receiving most forms of relief that would spare them from deportation, including asylum, and from being readmitted to the United States at any time in the future.
-
-Despite what the ominous-sounding name may suggest, an “aggravated felony” does not require the crime to be “aggravated” or a “felony” to qualify. Instead, an “aggravated felony” is simply an offense that Congress sees fit to label as such, and today includes many nonviolent and seemingly minor offenses.
-
-...
-
-As initially enacted in 1988, the term “aggravated felony” referred only to murder, federal drug trafficking, and illicit trafficking of certain firearms and destructive devices. Congress has since expanded the definition of “aggravated felony” on numerous occasions, but has never removed a crime from the list. Today, the definition of “aggravated felony” covers more than thirty types of offenses, including simple battery, theft, filing a false tax return, and failing to appear in court.
-
-:::
-
-[USCIS has a list of aggravated felonies](https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-4) on its website, but I'm not sure how up to date it is.
-
-You can also be deported for crimes of "moral turpitude".
-
-(The reason this matters is that it goes into the "most serious" crime category, I think.)
-
-The ICE custody worksheet suggests that the most serious crime conviction is based on the sentence, and nothing else: https://www.ice.gov/doclib/detention-standards/2011/2-2.pdf
-
-
-
-### Duplications
-
-There are apparent duplications in each dataset. Some are not truly
-dupes but are different events. For example, a single person arrested
-can have a series of detention records as they are moved around by ICE.
-Some are just mysterious. I'm handling different situations in different
-ways, documented here.
-
-### Missing unique identifiers
-
-ICE is supposed to provide a scrambled unique identifier for each person
-but there are quite a few missing.
 
 
 ### Famous cases
@@ -228,6 +157,23 @@ but there are quite a few missing.
 -   [ ] What is the impact of this coming from ICE's Integrated Enforcement Database? Is any CBP data included? Should it be?
 
 :::
+
+
+## Data project folder structure
+
+<!-- why isn't it respecting code-oveflow: wrap ?? -->
+
+````
+
+data
+  |_ raw
+    |_ ddp : Original data as provided by deportation data project with the
+      original names.  This is not cleaned by DDP.
+  |_ clean: processed, including interim data sets, in R or DB form or both.
+share
+  |_ data: csv or Excel files to share with partners.
+
+````
 
 
 

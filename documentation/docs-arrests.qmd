@@ -2,8 +2,11 @@
 title: "Arrests"
 ---
 
+ICE arrests contain a row for each person arrested by the ICE Enforcement and Removal Operations division.
 
-The easiest dataset to use, but not as useful for local news as we'd like. There is a field that is supposed to be the "landmark" at which someone was detained, but it often contains really general information, like "Dallas area" or "I-95 along North and South Carolina". Reporters could use this at the state level, as many have done, but it's really going to be incomplete.
+These are the "administrative" arrests, which exclude a lot of things we'd be interested in, such as arrests that were prosecuted by US attorneys in the criminal justice system, anything done entirely by Customs and Border Protection, and the HHS division that handles resettlement of refugee children.
+
+This means that this is a
 
 ## Stories
 
@@ -18,9 +21,9 @@ A lot of people have done stories on arrests -- they're the easiest to understan
 * Idaho Capitol Sun, "[ICE arrests and detentions rise steeply in Idaho](https://idahocapitalsun.com/2025/08/04/ice-arrests-and-detentions-rise-steeply-in-idaho/)", Laura Guido, Aug. 4, 2025
 
 
-## Record layout
+## BLN Record layout
 
-As of October 2025. I removed fields that were redacted or always blank.
+As of October 2025. I removed fields that were redacted or always blank. I'll only update counts when I change the data substantially,not when it's updated.
 
 ::: {.table-striped .table-sm}
 
@@ -50,7 +53,11 @@ As of October 2025. I removed fields that were redacted or always blank.
 
 :::
 
+::: callout-tip
 
+I converted some items to factors in order to have them sort properly in charts and graphs. Consider using the .Rds version of the file if you're using R to keep these. They will be plain character variables in other data processing sofware.
+
+:::
 
 
 ## Definitions
@@ -77,6 +84,45 @@ Non-detained docket | Alternatives to Detention; Non-Detained Docket Control; Ju
 Detained docket | Detained Docket Control; Detention and Deportation
 At-large arrests | Fugitive Operations; Joint Criminal Alien Response Team; Law Enforcement Area Response Units;  Mobile Criminal Alien Team; Violent Criminal Alien Section
 
+
+#### Apprehension method
+
+The Cato Institute had a piece on street vs. custody arrests, and they broke each of the 27 different kinds of apprehensions into those two categories. See the lookup tables for the exact translation.  Almost all of the "From detention" are from state, local or federal jails and prisons.
+
+Some combinations of apprehension method and final program seem to conflict with each other. There's not much we can do about this.
+
+#### Case status
+
+Case status refers to the legal reason that someone was taken out of ICE control. They might have voluntarily left the country before charges were filed, or they might have even died. I collapsed the 14 categories into 6 to  make analysis a little easier.
+
+I coded missing values as "Active case" because we don't know otherwise, but that might not end up being right. It's a fairly small number of cases -- about 4,500.
+
+Everything except "Active case" is no longer under ICE's caseload.
+
+
+::: callout-important
+
+I need to run these translations by an expert - I'm not sure I have them exactly right.
+
+:::
+
+
+New category | Original categories
+-------------| ---------------------------------------------
+Active case | ACTIVE
+Left without arrest | 0-Withdrawal Permitted - I-275 Issued ; 3-Voluntary Departure Confirmed ; 9-VR Witnessed
+Alien Enemies Act expulsion |  5-Title 50 Expulsion
+Excluded / removed | 6-Deported/Removed - Deportability ; 8-Excluded/Removed - Inadmissibility;
+No further action | 7-Died ;  A-Proceedings Terminated   ; E-Charging Document Canceled by ICE
+Permanent residence granted | L-Legalization - Permanent Residence Granted ; Z-SAW - Permanent Residence Granted
+Unknown | Missing values
+
+#### Case category
+
+These are somehow related to the "Case status", because they have the same number of missing values. But they are not further detail within each of the case status groupings -- they don't map one-to-one.
+
+
+
 ## Processing notes
 
 ### Handling duplicates
@@ -102,24 +148,29 @@ There are a handful of true duplicates -- items with the exact same information 
 :::
 
 
-::: {.question}
-* [ ] Based on what is and is not an ERO administrative arrest, can we find "Kavanaugh stops" by looking at detentions that were not based on a) detainers, b) warrants, or c) CBP operations?
+::: question
 
-* [ ] Clarify how much and what is missing from the ICE administrative arrest data. Kocher says it's "likely" that it does not additional arrests. Is that true? (Hint: there are no U.S. citizens in the arrest data.)
+## Data questions
+<!-- this can't have any blank rows for the checkboxes to come out right -->
 
-* [ ] How can there be arrests in the Detained Docket Control program -- I thought this means that they're already in ICE custody?
-
-* [ ] Is it at all possible that the large number of missing final order dates refer to people who don't have final orders of removal? If so, why are they arrested?
+- [ ] Clarify how much and what is missing from the ICE administrative arrest data. Kocher says it's "likely" that it does not additional arrests. Is that true? (Hint: there are no U.S. citizens in the arrest data.)
+- [ ] How can there be arrests in the Detained Docket Control program -- I thought this means that they're already in ICE custody?
+- [ ] Is it at all possible that the large number of missing final order dates refer to people who don't have final orders of removal? If so, why are they arrested?
+- [ ] How are children handled in practice? I know the data here excludes OSS (HHS) detentions, but what happens in the arrest data?
 
 :::
 
+::: question
+
+## Story questions
+
+- [ ] Based on what is and is not an ERO administrative arrest, can we find "Kavanaugh stops" by looking at detentions that were not based on a) detainers, b) warrants, or c) CBP operations?
+- [ ] Is there anything interesting about people who are arrested but there is no final order? This would presumably be people who have evaded the immigration system entirely, or who have run away from detention? I guess it could include people who overstayed their visas as well.
+
+:::
 
 
 ## Detention
 
 * Los Angeles Times, "How ICE detainees are moved miles away from families and attorneys", Sep. 26, 2025 and "'It's dystopian': 1 in 3 ICE detainees held in overcrowded facilities", Los Angeles Times, Aug. 29, 2025
 
-
-:::
-
----------------------------------------

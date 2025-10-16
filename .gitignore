@@ -8,3 +8,5 @@ working/
 utilities/
 *_cache/
 
+
+/.quarto/
