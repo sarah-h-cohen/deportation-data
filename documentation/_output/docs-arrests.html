@@ -4024,7 +4024,7 @@ div.callout-todo.callout-style-default .callout-icon::before, div.callout-todo.c
 <tr class="odd">
 <td>5</td>
 <td>final_program</td>
-<td>Refers to the organizational program within ICE that handled the arrest. This is the original 14 ICE programs, which I will collapse into four large categories</td>
+<td>Refers to the organizational program within ICE that handled the arrest. This is the original 14 ICE programs, collapsed to four</td>
 <td>character</td>
 <td>14</td>
 <td>0.0%</td>
@@ -4201,6 +4201,30 @@ Tip
 </tbody>
 </table>
 </section>
+<section id="apprehension-method" class="level4">
+<h4 class="anchored" data-anchor-id="apprehension-method">Apprehension method</h4>
+<p>The Cato Institute had a piece on street vs. custody arrests, and they broke each of the 27 different kinds of apprehensions into those two categories. See the lookup tables for the exact translation. Almost all of the “From detention” are from state, local or federal jails and prisons.</p>
+<p>Some combinations of apprehension method and final program seem to conflict with each other. There’s not much we can do about this.</p>
+</section>
+<section id="case-status-and-category" class="level4">
+<h4 class="anchored" data-anchor-id="case-status-and-category">Case status and category</h4>
+<p>These cross many of the tables and are documented in the <a href="./documentation/docs-alldata.qmd">page for all data</a>. But generally, they both refer to the legal reasons that ICE is involved and that cover their removal process.</p>
+<p>Case status refers to the legal reason that someone was taken out of ICE control. They might have voluntarily left the country before charges were filed, or they might have even died. I collapsed the 14 categories into 6 to make analysis a little easier. Anything that isn’t an “Active case” or missing data (only about 4,500 cases) is in progress. Everything else means they’ve left ICE control.</p>
+<p>Case category is the detailed legal reason that they are seeking removal.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>I need to run these translations by an expert - I’m not sure I have them exactly right.</p>
+</div>
+</div>
+</section>
 </section>
 <section id="processing-notes" class="level2">
 <h2 class="anchored" data-anchor-id="processing-notes">Processing notes</h2>
@@ -4228,10 +4252,12 @@ TODO
 <div class="callout-body-container callout-body">
 <ul class="task-list">
 <li><label><input type="checkbox">Convert character into factor vars where it makes sense for charting, sorting</label></li>
-<li><label><input type="checkbox">Convert date-time to date only where no time is recorded</label></li>
+<li><label><input type="checkbox" checked>Convert date-time to date only where no time is recorded</label></li>
 <li><label><input type="checkbox">Decide on how to deal with partial duplicates</label></li>
-<li><label><input type="checkbox">Collapse program categories</label></li>
-<li><label><input type="checkbox">Figure out how to collapse case_status and case_category groupings</label></li>
+<li><label><input type="checkbox" checked>Collapse case status</label></li>
+<li><label><input type="checkbox">Collapse case category</label></li>
+<li><label><input type="checkbox" checked>Collapse program categories</label></li>
+<li><label><input type="checkbox">Run the recodes by an expert or two</label></li>
 </ul>
 </div>
 </div>
@@ -4776,7 +4802,7 @@ Story questions
 <span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2     <span class="pp">|</span> apprehension_date          <span class="pp">|</span> Range: 2023-09-01 - 2025-07-29                                                   <span class="pp">|</span> POSIXct POSIXt <span class="pp">|</span>               <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
 <span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 3     <span class="pp">|</span> apprehension_state         <span class="pp">|</span>                                                                                  <span class="pp">|</span> character      <span class="pp">|</span> 62            <span class="pp">|</span> 19.4%       <span class="pp">|</span></span>
 <span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4     <span class="pp">|</span> apprehension_aor           <span class="pp">|</span> Area of Reponsibility                                                            <span class="pp">|</span> character      <span class="pp">|</span> 27            <span class="pp">|</span> 2.0%        <span class="pp">|</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5     <span class="pp">|</span> final_program              <span class="pp">|</span> Refers to the organizational program within ICE that handled the arrest. This is the original 14 ICE programs, which I will collapse into four large categories                                                                              <span class="pp">|</span> character      <span class="pp">|</span> 14            <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5     <span class="pp">|</span> final_program              <span class="pp">|</span> Refers to the organizational program within ICE that handled the arrest. This is the original 14 ICE programs, collapsed to four                                                                              <span class="pp">|</span> character      <span class="pp">|</span> 14            <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6     <span class="pp">|</span> final_program_group        <span class="pp">|</span> Always &quot;ICE&quot;                                                                     <span class="pp">|</span> character      <span class="pp">|</span> 1             <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
 <span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 7     <span class="pp">|</span> apprehension_method        <span class="pp">|</span>                                                                                  <span class="pp">|</span> character      <span class="pp">|</span> 27            <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 8     <span class="pp">|</span> apprehension_criminality   <span class="pp">|</span> &quot;Convicted Criminal&quot;, &quot;Pending Criminal Charges&quot;; &quot;Other Immigration Violator&quot;   <span class="pp">|</span> character      <span class="pp">|</span> 3             <span class="pp">|</span> 0.0%        <span class="pp">|</span></span>
@@ -4825,56 +4851,80 @@ Story questions
 <span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>Detained docket | Detained Docket Control; Detention and Deportation</span>
 <span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>At-large arrests | Fugitive Operations; Joint Criminal Alien Response Team; Law Enforcement Area Response Units;  Mobile Criminal Alien Team; Violent Criminal Alien Section</span>
 <span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="fu">## Processing notes</span></span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="fu">### Handling duplicates</span></span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>There are a handful of true duplicates -- items with the exact same information in each column. But most of the dupes aren&#39;t that straightforward. Here are some of the ways that dupes happen and what I&#39;m doing with them for the time being:</span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same date/time, missing unique identifier</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same date/time/identifier, different values in some columns:</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same identifier/date, different times</span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Apprehension method</span></span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>The Cato Institute had a piece on street vs. custody arrests, and they broke each of the 27 different kinds of apprehensions into those two categories. See the lookup tables for the exact translation.  Almost all of the &quot;From detention&quot; are from state, local or federal jails and prisons.</span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>Some combinations of apprehension method and final program seem to conflict with each other. There&#39;s not much we can do about this.</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Case status and category</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>These cross many of the tables and are documented in the <span class="co">[</span><span class="ot">page for all data</span><span class="co">](/documentation/docs-alldata.qmd)</span>. But generally,  they both refer to the legal reasons that ICE is involved and that cover their removal process.</span>
 <span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="fu">## Progress</span></span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>::: todo</span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Convert character into factor vars where it makes sense for charting, sorting</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Convert date-time to date only where no time is recorded</span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Decide on how to deal with partial duplicates</span>
-<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Collapse program categories</span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Figure out how to collapse case_status and case_category groupings</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>Case status refers to the legal reason that someone was taken out of ICE control. They might have voluntarily left the country before charges were filed, or they might have even died. I collapsed the 14 categories into 6 to  make analysis a little easier. Anything that isn&#39;t an &quot;Active case&quot; or missing data (only about 4,500 cases) is in progress. Everything else means they&#39;ve left ICE control.</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>Case category is the detailed legal reason that they are seeking removal.</span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>I need to run these translations by an expert - I&#39;m not sure I have them exactly right.</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="fu">## Processing notes</span></span>
 <span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>::: question</span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data questions</span></span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- this can&#39;t have any blank rows for the checkboxes to come out right --&gt;</span></span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Clarify how much and what is missing from the ICE administrative arrest data. Kocher says it&#39;s &quot;likely&quot; that it does not additional arrests. Is that true? (Hint: there are no U.S. citizens in the arrest data.)</span>
-<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> How can there be arrests in the Detained Docket Control program -- I thought this means that they&#39;re already in ICE custody?</span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Is it at all possible that the large number of missing final order dates refer to people who don&#39;t have final orders of removal? If so, why are they arrested?</span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> How are children handled in practice? I know the data here excludes OSS (HHS) detentions, but what happens in the arrest data?</span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>::: question</span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## Story questions</span></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Based on what is and is not an ERO administrative arrest, can we find &quot;Kavanaugh stops&quot; by looking at detentions that were not based on a) detainers, b) warrants, or c) CBP operations?</span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Is there anything interesting about people who are arrested but there is no final order? This would presumably be people who have evaded the immigration system entirely, or who have run away from detention? I guess it could include people who overstayed their visas as well.</span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="fu">### Handling duplicates</span></span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>There are a handful of true duplicates -- items with the exact same information in each column. But most of the dupes aren&#39;t that straightforward. Here are some of the ways that dupes happen and what I&#39;m doing with them for the time being:</span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same date/time, missing unique identifier</span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same date/time/identifier, different values in some columns:</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Same identifier/date, different times</span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="fu">## Progress</span></span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>::: todo</span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Convert character into factor vars where it makes sense for charting, sorting</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[x]</span> Convert date-time to date only where no time is recorded</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Decide on how to deal with partial duplicates</span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[x]</span> Collapse case status</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Collapse case category</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[x]</span> Collapse program categories</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="va">[ ]</span> Run the recodes by an expert or two</span>
 <span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="fu">## Detention</span></span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Los Angeles Times, &quot;How ICE detainees are moved miles away from families and attorneys&quot;, Sep. 26, 2025 and &quot;&#39;It&#39;s dystopian&#39;: 1 in 3 ICE detainees held in overcrowded facilities&quot;, Los Angeles Times, Aug. 29, 2025</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>::: question</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data questions</span></span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- this can&#39;t have any blank rows for the checkboxes to come out right --&gt;</span></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Clarify how much and what is missing from the ICE administrative arrest data. Kocher says it&#39;s &quot;likely&quot; that it does not additional arrests. Is that true? (Hint: there are no U.S. citizens in the arrest data.)</span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> How can there be arrests in the Detained Docket Control program -- I thought this means that they&#39;re already in ICE custody?</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Is it at all possible that the large number of missing final order dates refer to people who don&#39;t have final orders of removal? If so, why are they arrested?</span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> How are children handled in practice? I know the data here excludes OSS (HHS) detentions, but what happens in the arrest data?</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>::: question</span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## Story questions</span></span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Based on what is and is not an ERO administrative arrest, can we find &quot;Kavanaugh stops&quot; by looking at detentions that were not based on a) detainers, b) warrants, or c) CBP operations?</span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Is there anything interesting about people who are arrested but there is no final order? This would presumably be people who have evaded the immigration system entirely, or who have run away from detention? I guess it could include people who overstayed their visas as well.</span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a><span class="fu">## Detention</span></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Los Angeles Times, &quot;How ICE detainees are moved miles away from families and attorneys&quot;, Sep. 26, 2025 and &quot;&#39;It&#39;s dystopian&#39;: 1 in 3 ICE detainees held in overcrowded facilities&quot;, Los Angeles Times, Aug. 29, 2025</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

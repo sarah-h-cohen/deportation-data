@@ -30,3 +30,77 @@ Here are a few resources to learn more about how the system works:
 
 * [The immigration court system, explained](https://www.borderreport.com/immigration/explainer-how-immigrants-end-up-on-ices-non-detained-docket/), Brennan Center for Justice
 
+
+## History of some of the fields
+
+This [paper from Donald Kerwin of the Center for Migration Studies](https://journals.sagepub.com/doi/epdf/10.1177/233150241500300402) explains that some of the fields are remnants of historical immigration laws. I'll try so summarize it here as it relates to the data.
+
+### Case categories
+
+Before 1996, "removable non-citizens" fell into two broad categories: deportable and excludable. Deportable generally means they came into the country legally -- they have been lawfully admitted by going through the immigration officer at the border. Excludable means they can be sent back without the protections of going through a deportation process. Even though the law changed substantially in 1996, the data from ICE retains this language.^[People who entered the country prior to 1996 had greater rights and were placed in deportation proceedings]
+
+For people seeking legal status, the difference is crucial: People who are excludable, or inadmissable, have to prove they have a legal right to stay. In contrast, the *government* has to prove that someone is deportable.
+
+of entry, they've crossed the border without being seen by an immigration officer (they snuck in), they apply to become a legal permanaent resident (green card holder), or they have been convicted of a crime and seek to be admitted sometime in the future.
+
+At the time, immigrants who had entered the country before the 1996 law had greater rights, and were sent through deportation. But those stopped at the border became "excludable" based on the idea that they had no "entered" the country.
+
+All of this language can be important, since it maps to the data columns provided by ICE.
+
+
+::: callout-info
+
+
+Source:  "[Immigration Consequences of a Criminal Conviction in North Carlina](https://defendermanuals.sog.unc.edu/sites/default/files/pdf/3.2%20Deportability%20vs.%20Inadmissibility.pdf)", chapter 3
+
+:::
+
+
+### Effects of criminal convictions on deportation and admission status
+
+Most states have some sort of chart that maps the federal policy to their own criminal code, such as this one from the University of Maryland: <https://www.law.umaryland.edu/media/sol/sol-2022-images-and-files/academics/programs-and-centers/chacon-center-for-immigrant-justice-program/pdfs-docs-and-files/Md-Imm-Conseq-Chart-6-15-2021-revision-FINAL.pdf>
+
+
+## Glossary
+
+### Admission and deportation status
+
+ *Admission*
+  : Lawful entry into the U.S. after inspection and authorization by an immigration officer. INA § 101(a)(13)(A), 8 U.S.C. § 1101(a)(13)(A). People become "*excludable*" if they are in the country without proper admission.
+
+*Deportability*
+  :  applies to noncitizens who have been lawfully admitted to the U.S. (even if their lawful status has expired).
+
+*Inadmissibility*
+  : applies to people who are seeking admission into the U.S.  Green card holders convicted of certain crimes may not be able to return falling after traveling abroad on the grounds of inadmissibility
+
+*Excludable*
+  : Same as inadmissable, people who have not gone through the proper immigration or entry checks, including people caught within 100 miles of the border soon after arriving.
+
+
+
+### Legal proceedings
+
+In most cases, immigration officials have to go before an immigration judge to get an order of removal. But there are several categories that avoid this step, and can result in immediate removal.
+
+Examples include:
+
+*Expedited removal*
+  : Removing people caught within 100 miles of the border after entering illegally, and have been in the country less than 2 years. This may sound like a narrow group, but it's huge. Every coastline is a border, making people in the largest population centers subject to expedited removal. Expedited removal traditionally was used by the Customs and Border Patrol and applied to people who just arrived. The Trump administration is using it through ICE in large cities around the country. These are sometimes called "returns".
+
+*Reinstatement of removal*
+  : Applies to people who left either voluntarily or by being removed and re-enter illegally.
+
+*Administrative removal*
+  : Removal of people who have been convicted of an "aggravated felony", as defined by Congress^[8 USC § 1101(a)(43)]. Aggravated felonies are not what they seem. They include crimes as serious as murder but also some people convicted of prostitution.
+
+
+
+
+
+
+[Pacific Enforcement Response Center (PERC)](https://www.ice.gov/video/pacific-enforcement-response-center-perc)
+Tue, 06/12/2018 - 15:45
+ICE established the PERC in January 2015 to serve as a tactical force multiplier for the Law Enforcement Support Center (LESC) and ERO field offices nationwide. Located in Laguna Niguel, California, the PERC operates round-the-clock 365 days per year and takes appropriate law enforcement action upon aliens suspected, arrested, or convicted of criminal activity across the United States. After initial alienage determination is made at the LESC, trained law enforcement officers at the PERC manage the high volume of actionable criminal leads requiring immediate enforcement action.
+
+The PERC protects and defends the United States by sharing timely and relevant ICE information with ERO field offices and law enforcement partners nationwide, issuing immigration detainers/request for notification on high-priority and high-risk criminal aliens.  The primary users of the PERC are ERO and ICE field offices that benefit from real-time enforcement decisions and actions made by the PERC.  Officers at the PERC support DHS’s overarching mission to enhance national security and public safety by furthering the removal process of priority criminal aliens from the United States.

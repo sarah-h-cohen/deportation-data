@@ -3909,9 +3909,10 @@ div.callout-todo.callout-style-default .callout-icon::before, div.callout-todo.c
   <li><a href="#guardian-us" id="toc-guardian-us" class="nav-link" data-scroll-target="#guardian-us">Guardian US</a></li>
   <li><a href="#enforcement-dashboard" id="toc-enforcement-dashboard" class="nav-link" data-scroll-target="#enforcement-dashboard">Enforcement dashboard</a></li>
   <li><a href="#other-possible-sources" id="toc-other-possible-sources" class="nav-link" data-scroll-target="#other-possible-sources">Other possible sources</a></li>
-  <li><a href="#famous-cases" id="toc-famous-cases" class="nav-link" data-scroll-target="#famous-cases">Famous cases</a></li>
+  <li><a href="#tracking-cases-through-the-system" id="toc-tracking-cases-through-the-system" class="nav-link" data-scroll-target="#tracking-cases-through-the-system">Tracking cases through the system</a></li>
   </ul></li>
-  <li><a href="#data-project-folder-structure" id="toc-data-project-folder-structure" class="nav-link" data-scroll-target="#data-project-folder-structure">Data project folder structure</a></li>
+  <li><a href="#progress-notes" id="toc-progress-notes" class="nav-link" data-scroll-target="#progress-notes">Progress notes</a></li>
+  <li><a href="#folder-structure" id="toc-folder-structure" class="nav-link" data-scroll-target="#folder-structure">Folder structure</a></li>
   </ul>
 </nav>
     </div>
@@ -3985,11 +3986,17 @@ div.callout-todo.callout-style-default .callout-icon::before, div.callout-todo.c
 <ul>
 <li><p>LA Times reporters who have been working with all of the data</p></li>
 <li><p>Tim Henderson, Stateline</p></li>
+<li><p>Anthony DeBarros, WSJ, who analyzed the Deportation Data Project’s datasets in context of other available sources, at <a href="https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&amp;reflink=desktopwebshare_permalink" class="uri">https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&amp;reflink=desktopwebshare_permalink</a></p></li>
 </ul>
 </section>
 </section>
-<section id="famous-cases" class="level3">
-<h3 class="anchored" data-anchor-id="famous-cases">Famous cases</h3>
+<section id="tracking-cases-through-the-system" class="level3">
+<h3 class="anchored" data-anchor-id="tracking-cases-through-the-system">Tracking cases through the system</h3>
+<p>TBD</p>
+</section>
+</section>
+<section id="progress-notes" class="level2">
+<h2 class="anchored" data-anchor-id="progress-notes">Progress notes</h2>
 <div class="callout callout-style-default callout-todo no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -4029,19 +4036,23 @@ Questions
 </div>
 </div>
 </section>
-</section>
-<section id="data-project-folder-structure" class="level2">
-<h2 class="anchored" data-anchor-id="data-project-folder-structure">Data project folder structure</h2>
-<!-- why isn't it respecting code-oveflow: wrap ?? -->
-<pre><code>
-data
-  |_ raw
-    |_ ddp : Original data as provided by deportation data project with the
-      original names.  This is not cleaned by DDP.
-  |_ clean: processed, including interim data sets, in R or DB form or both.
-share
-  |_ data: csv or Excel files to share with partners.
+<section id="folder-structure" class="level2">
+<h2 class="anchored" data-anchor-id="folder-structure">Folder structure</h2>
+<p>I have not put the <code>/data/</code> files into the github repo, but everything needed to get there is in the programs. (I don’t want to make copies of the Deportation Data Project’s work, so I am referring anyone who wants the originals to their site. )</p>
+<p>In my project, the folder structure is:</p>
+<!-- why isn't my wrapping working? I don't care that much, but it annoys me -->
+<div class="sourceCode code pre" style="text-wrap:wrap;font-family:monospace;">
+<pre><code>+-- documentation (most name are self-explanatory
+|   `-- master_data_dictionary_lookups.xlsx
++-- programs (names are self-explanatory)
++-- data
+|   +-- raw
+|   |  +-- ddp : Data exactly as provided by deportation data project with the original names.
+|   +-- clean: processed, including interim data sets, in R or DB form or both.
++-- share
+|   +-- data: shared datasets in any form
 </code></pre>
+</div>
 
 
 <!-- -->
@@ -4645,43 +4656,54 @@ share
 <span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Tim Henderson, Stateline</span>
 <span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Anthony DeBarros, WSJ, who analyzed the Deportation Data Project&#39;s datasets in context of other available sources, at <span class="ot">&lt;https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&amp;reflink=desktopwebshare_permalink&gt;</span></span>
 <span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a><span class="fu">### Famous cases</span></span>
+<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>::: {.todo}</span>
-<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Get a list of famous cases that should be followed through the system</span>
-<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Moving around detention</span>
-<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Arrest at courthouse</span>
-<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>US citizens</span>
-<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Deaths</span>
-<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Children</span>
-<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>::: {.question}</span>
-<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Is the unique identifier the same over time?</span>
-<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> What is the impact of this coming from ICE&#39;s Integrated Enforcement Database? Is any CBP data included? Should it be?</span>
-<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a><span class="fu">### Tracking cases through the system</span></span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>TBD</span>
+<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="fu">## Progress notes</span></span>
+<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>::: {.todo}</span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> Get a list of famous cases that should be followed through the system</span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Moving around detention</span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Arrest at courthouse</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>US citizens</span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Deaths</span>
+<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Children</span>
 <span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data project folder structure</span></span>
-<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- why isn&#39;t it respecting code-oveflow: wrap ?? --&gt;</span></span>
-<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>::: {.question}</span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Is the unique identifier the same over time?</span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> What is the impact of this coming from ICE&#39;s Integrated Enforcement Database? Is any CBP data included? Should it be?</span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a><span class="in">data</span></span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a><span class="in">  |_ raw</span></span>
-<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a><span class="in">    |_ ddp : Original data as provided by deportation data project with the</span></span>
-<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a><span class="in">      original names.  This is not cleaned by DDP.</span></span>
-<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a><span class="in">  |_ clean: processed, including interim data sets, in R or DB form or both.</span></span>
-<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a><span class="in">share</span></span>
-<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a><span class="in">  |_ data: csv or Excel files to share with partners.</span></span>
-<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
-<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a><span class="fu">## Folder structure</span></span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>I have not put the <span class="in">`/data/`</span> files into the github repo, but everything needed to get there is in the programs. (I don&#39;t want to make copies of the Deportation Data Project&#39;s work, so I am referring anyone who wants the originals to their site. )</span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>In my project, the folder structure is:</span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- why isn&#39;t my wrapping working? I don&#39;t care that much, but it annoys me --&gt;</span></span>
+<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>::: {.sourceCode .code .pre style=&quot;text-wrap:wrap;font-family:monospace;&quot;}</span>
+<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a><span class="in">+-- documentation (most name are self-explanatory</span></span>
+<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="in">|   `-- master_data_dictionary_lookups.xlsx</span></span>
+<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a><span class="in">+-- programs (names are self-explanatory)</span></span>
+<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="in">+-- data</span></span>
+<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="in">|   +-- raw</span></span>
+<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="in">|   |  +-- ddp : Data exactly as provided by deportation data project with the original names.</span></span>
+<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a><span class="in">|   +-- clean: processed, including interim data sets, in R or DB form or both.</span></span>
+<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="in">+-- share</span></span>
+<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a><span class="in">|   +-- data: shared datasets in any form</span></span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

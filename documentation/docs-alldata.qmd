@@ -29,7 +29,9 @@ specific to individual ones.
 
 * There are some definitions that are still meaningful in the paper "[Piecing together the US Immigration Detention Puzzle One Night at a Time](https://journals.sagepub.com/doi/reader/10.1177/233150241500300402), Donald Kerwin and Daniela Alulema (Center for Migration Studies), Journal on Migration and Human Security, 2012.
 
-## Questions on common categories
+## Common categories
+
+There are a ton of variables that exist across all of the tables with the same meaning. Those are documented here. Columns specific to one table are defined in its documentation. The definitions lean heavily on the documentation provided by the Deportation Data Project.
 
 ::: todo
 
@@ -72,45 +74,67 @@ It's really unclear what is considered the "most serious" crime. In particular, 
 
 4. The ICE custody worksheet suggests that the most serious crime conviction is based on the sentence, and nothing else: <https://www.ice.gov/doclib/detention-standards/2011/2-2.pdf>
 
+## Case status and category codes
+
+The case status and category codes contain remnants of the law as it existed before 1996, and have been constantly updated piecemeal. That makes them really difficult to understand. I've tried to combine and rename these codes into meaningful groups.
+
+Although they mean different things, the case status and category tend to go together. In arrests, for example, they have the exact same number of missing values.
+
+::: callout-warning
+
+I still need to run these by an expert -- use with care.
+
+:::
+
+### Case status
+
+At the highest level, refers to whether it is in ICE's purview. Anything that is ACTIVE is still on their books. Everything else is a reason that they're not. I've grouped ACTIVE with the missing values to create "Active case", and then grouped the 13 more detailed reasons into more general categories. The recodes are called `case_status_bln` in the tables.
+
+New category | Original categories
+-------------| ---------------------------------------------
+Active case | ACTIVE
+Left without arrest | 0-Withdrawal Permitted - I-275 Issued ; 3-Voluntary Departure Confirmed ; 9-VR Witnessed
+Alien Enemies Act expulsion |  5-Title 50 Expulsion
+Excluded / removed | 6-Deported/Removed - Deportability ; 8-Excluded/Removed - Inadmissibility;
+No further action | 7-Died ;  A-Proceedings Terminated   ; E-Charging Document Canceled by ICE
+Permanent residence granted | L-Legalization - Permanent Residence Granted ; Z-SAW - Permanent Residence Granted
+Unknown | Missing values
+
+### Case category
+
+There are
+
 
 ## Data cleaning checks
 
-### Duplicates
+#### Duplicates
 
-There are apparent duplications in each dataset. There are three general categories of dupes:
+True duplicates (every column exactly the same) are removed. But there are other types of duplication that are handled table-by-table. In some cases, they actually aren't duplicates -- they refer to more than one thing happening to a person or a case. In others, they're artifacts of a relational system and how they're handled depends on what the substantive question is. In still other cases, they **may** be duplicates, but we're not sure.
 
-::: todo
-
-*  [ ] Remove true duplicates.
-:::
-
-Make decisions about the other types of dupes on a table-by-table basis.
-
-#### Easy answers
-
-* Dupes created by the relational nature of the data. For example, a person could be arrested twice, or they will show up over and over in the detention data. In each dataset, we can decide how to handle them for the purpose of local reporting. Using the same example in detention, for example, might mean that we want to create a snapshot for each detention location that has anyone who was ever in that area. For arrests, we may only want to keep the most recent OR we may want to create some summaries of arrests, and summaries of people, separately.
+Generally:
 
 * Duplicates across all fields, including missing values. Just save one -- it doesn't matter which.
 
+* Dupes created by the relational nature of the data. For example, a person could be arrested twice, or they will show up over and over in the detention data. In each dataset, we can decide how to handle them for the purpose of local reporting. Using the same example in detention, for example, might mean that we want to create a snapshot for each detention location that has anyone who was ever in that area. For arrests, we may only want to keep the most recent OR we may want to create some summaries of arrests, and summaries of people, separately.
 
-
-
-#### Hard answers
 
 * Dupes that appear to be the same, but have different information. An example is an arrest record that differs in most cells, but has the same unique person ID and the same date and time as others. One answer is to look at the order that the file came in, and choose the one that appears to be the most recent (top or bottom of list in their original order), or see whether one of the values suggests it is a record that SHOULD be deleted (entered in error).
 
 
-
-### Missing unique identifiers
+#### Missing unique identifiers
 
 ICE is supposed to provide a scrambled unique identifier for each person but there are quite a few missing.
 
 
-### Dates and times
+#### Dates and times
 
-::: todo
+In each table, I checked to see if there is a meaningful time element to the date. If not, I converted the original column from date-time to just date. How this gets handled by others depends on the data processing software they use. If there is a meaningful time, then I added a column with the original name and the suffix `_part`
 
-* [ ] Add a "clean date" field to each dataset where it looks like we need it.  Here, we can change entries that are clearly the wrong century to the right one and delete the dates that are most obviously wrong.
-* [ ] Separate date and time fields where it's important. There are times that reporters will want to use the date only and it's hard for them using date-time combinations.
 
+## Progress notes
+
+
+::: question
+- [ ] Is there any meaning to the original order of the file? This would affect what we do with duplicates.
+- [ ] Are there any indicators of mistakes made in the data? (This might be a program code or something, or might be in the way they're ordred. In LIONS, for example, they're not allowed to just delete something, so they have to mark something for deletion instead when they make a mistake.)
 :::

@@ -137,11 +137,15 @@ it.
 
 * Tim Henderson, Stateline
 
-* Anthony DeBarris, WSJ, who analyzed the Deportation Data Project's datasets in context of other available sources, at <https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&reflink=desktopwebshare_permalink>
+* Anthony DeBarros, WSJ, who analyzed the Deportation Data Project's datasets in context of other available sources, at <https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&reflink=desktopwebshare_permalink>
 
 
 
-### Famous cases
+### Tracking cases through the system
+
+TBD
+
+## Progress notes
 
 ::: {.todo}
 - [ ] Get a list of famous cases that should be followed through the system
@@ -159,21 +163,26 @@ it.
 :::
 
 
-## Data project folder structure
+## Folder structure
 
-<!-- why isn't it respecting code-oveflow: wrap ?? -->
+I have not put the `/data/` files into the github repo, but everything needed to get there is in the programs. (I don't want to make copies of the Deportation Data Project's work, so I am referring anyone who wants the originals to their site. )
 
-````
+In my project, the folder structure is:
 
-data
-  |_ raw
-    |_ ddp : Original data as provided by deportation data project with the
-      original names.  This is not cleaned by DDP.
-  |_ clean: processed, including interim data sets, in R or DB form or both.
-share
-  |_ data: csv or Excel files to share with partners.
+<!-- why isn't my wrapping working? I don't care that much, but it annoys me -->
+::: {.sourceCode .code .pre style="text-wrap:wrap;font-family:monospace;"}
 
-````
+```
++-- documentation (most name are self-explanatory
+|   `-- master_data_dictionary_lookups.xlsx
++-- programs (names are self-explanatory)
++-- data
+|   +-- raw
+|   |  +-- ddp : Data exactly as provided by deportation data project with the original names.
+|   +-- clean: processed, including interim data sets, in R or DB form or both.
++-- share
+|   +-- data: shared datasets in any form
 
-
+```
+:::
 

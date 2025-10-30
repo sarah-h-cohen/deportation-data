@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sarah Cohen">
-<meta name="dcterms.date" content="2025-10-16">
+<meta name="dcterms.date" content="2025-10-27">
 
 <title>Arrest table cleanup</title>
 <style>
@@ -2197,7 +2197,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 16, 2025</p>
+      <p class="date">October 27, 2025</p>
     </div>
   </div>
   
@@ -2209,6 +2209,9 @@ vertical-align: -.125em;
 </header>
 
 
+<div class="confidential">
+<p>Not for publication</p>
+</div>
 <p>The arrests table cleanup is done in this document. See the documentation for details on why and how it ends up.</p>
 <div class="cell">
 <details class="code-fold">
@@ -2228,526 +2231,390 @@ vertical-align: -.125em;
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#additional packages here</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> (<span class="at">list=</span><span class="fu">ls</span>())</span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>orig_xl_date <span class="ot">&lt;-</span> <span class="fu">mdy</span>(<span class="st">&quot;10/14/2025&quot;</span>)</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># when was this last picked up from the Deportation Data Project?</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>orig_xl_date <span class="ot">&lt;-</span> <span class="fu">mdy</span>(<span class="st">&quot;10/14/2025&quot;</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">#start with a blank slate</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-</div>
-<div class="confidential">
-<p>Not for publication</p>
 </div>
 <p>Data Last Updated: October 14, 2025</p>
-<section id="read-original-excel-file-from-deportation-data-project" class="level2">
-<h2 class="anchored" data-anchor-id="read-original-excel-file-from-deportation-data-project">Read original Excel file from Deportation Data Project</h2>
-<p>The original Excel file has 19 columns that have to be imported with variable types to take care of Zip codes, dates and missing values. Reading everything as text has two problems: Lack of precision in numbers, and dates converted to serial numbers. The data header is at row 7 and the data starts row 8.</p>
-<p>Two collumns are dropped because they add no information: <code>final_program_group</code> is always “ICE”, <code>apprehension_county</code> is always missing. This could change in the future.</p>
 <div class="cell">
-<details open class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-arrest-rawdata</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: true</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: true</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>var_types <span class="ot">&lt;-</span> <span class="fu">c</span> (<span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>,<span class="dv">9</span> ), <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;skip&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>, <span class="dv">3</span>),</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rep</span>(<span class="st">&quot;skip&quot;</span>, <span class="dv">3</span>), <span class="st">&quot;text&quot;</span>)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>orig_xls <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_AdminArrests_07312025.xlsx&quot;</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                      ),</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">skip=</span><span class="dv">6</span>,</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">col_types =</span> var_types</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                      )  <span class="sc">|&gt;</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            <span class="fu">rowid_to_column</span>(<span class="at">var=</span><span class="st">&quot;orig_row_id&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="co"># county is always empty</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span> ( <span class="sc">-</span> <span class="fu">c</span>(apprehension_county, final_program_group))</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: convenience</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># convenience functions</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># count numbr of rows with missing values in the specified column, optionally</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered by a condition represented in a string.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>missing_nrow <span class="ot">&lt;-</span> <span class="cf">function</span>(df, missing_column, <span class="at">optional_filter =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(optional_filter)) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">=</span> df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!!</span>rlang<span class="sc">::</span><span class="fu">parse_expr</span>(optional_filter))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">=</span> df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(.data[[missing_column]]))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>(filtered_df)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Round to nearest N means  you can use 500, not just 1, 100, 1000, etc.</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Uses R rounding method, which would take 449.5 to 448, not 500, but I don&#39;t think</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># it matters here. There won&#39;t be anything that odd.</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>round_nearest_n <span class="ot">&lt;-</span> <span class="cf">function</span> (x,  n ) {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  rounded_value <span class="ot">=</span> <span class="fu">round</span> ( x <span class="sc">/</span> n) <span class="sc">*</span> n</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (<span class="fu">formatC</span>(rounded_value, <span class="at">format =</span> <span class="st">&quot;d&quot;</span>, <span class="at">big.mark =</span> <span class="st">&quot;,&quot;</span>) )</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Takes an optional  list of objects, a string vector, and a file name</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co"># to save an Rda with objects renamed from the original.</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co"># example: saveit (  master_xl, lookup_tables, df_recoded ,</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">#                   string = c(&quot;arrest_original&quot;, &#39;arrest_lookups&#39;, &quot;arrest_recoded&quot;) ,</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">#                   file = &quot;/data/processed/arrests.Rda&quot;)</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co"># the number of items in the vector have to match the number provided in the unlisted list</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>saveit <span class="ot">&lt;-</span> <span class="cf">function</span>(..., string, file) {</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> <span class="fu">list</span>(...)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">names</span>(x) <span class="ot">&lt;-</span> string</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">save</span>(<span class="at">list=</span><span class="fu">names</span>(x), <span class="at">file=</span>file, <span class="at">envir=</span><span class="fu">list2env</span>(x))</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-</section>
-<section id="basic-cleanup" class="level2">
-<h2 class="anchored" data-anchor-id="basic-cleanup">Basic cleanup</h2>
-<p>At the end of this, I’ll change the order of the columns so they make a little more sense.</p>
-<section id="remove-true-dupes" class="level4">
-<h4 class="anchored" data-anchor-id="remove-true-dupes">1. Remove true dupes</h4>
+<section id="read-original-excel-file-from-deportation-data-project" class="level2">
+<h2 class="anchored" data-anchor-id="read-original-excel-file-from-deportation-data-project">Read original Excel file from Deportation Data Project</h2>
+<p>The original Excel file has 19 columns that have to be imported with variable types to take care of Zip codes, dates and missing values. Reading everything as text has two problems: Floating point weirdness, and dates converted to serial numbers. The data header is at row 7 and the data starts row 8.</p>
+<p>Two columns are dropped because they add no information: <code>final_program_group</code> is always “ICE”, <code>apprehension_county</code> is always missing. This could change in the future.</p>
+<p>I renamed the columns to a) lowercase everything; b) replace spaces and special characters with underscores.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: remove-dupes</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>deduped_xl <span class="ot">&lt;-</span> orig_xls <span class="sc">|&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span> ( <span class="fu">pick</span> (apprehension_date<span class="sc">:</span>unique_identifier))</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-arrest-rawdata</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: true</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: true</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>var_types <span class="ot">&lt;-</span> <span class="fu">c</span> (<span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>,<span class="dv">9</span> ), <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;skip&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>, <span class="dv">3</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rep</span>(<span class="st">&quot;skip&quot;</span>, <span class="dv">3</span>), <span class="st">&quot;text&quot;</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>orig_xls <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_AdminArrests_07312025.xlsx&quot;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                      ),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">skip=</span><span class="dv">6</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">col_types =</span> var_types</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                      )  <span class="sc">|&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            <span class="co"># I&#39;ll get the last arrest in the datast later.</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="fu">rowid_to_column</span>(<span class="at">var=</span><span class="st">&quot;orig_row_id&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            <span class="co"># county is always empty</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span> ( <span class="sc">-</span> <span class="fu">c</span>(apprehension_county, final_program_group))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span> (orig_xls)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 291,722
+Columns: 18
+$ orig_row_id                &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, …
+$ apprehension_date          &lt;dttm&gt; 2025-07-26 18:50:27, 2025-07-02 17:57:46, …
+$ apprehension_state         &lt;chr&gt; &quot;TEXAS&quot;, &quot;NEVADA&quot;, &quot;NEW YORK&quot;, &quot;TEXAS&quot;, &quot;TE…
+$ apprehension_aor           &lt;chr&gt; &quot;Houston Area of Responsibility&quot;, &quot;Salt Lak…
+$ final_program              &lt;chr&gt; &quot;ERO Criminal Alien Program&quot;, &quot;ERO Criminal…
+$ apprehension_method        &lt;chr&gt; &quot;Custodial Arrest&quot;, &quot;CAP Local Incarceratio…
+$ apprehension_criminality   &lt;chr&gt; &quot;3 Other Immigration Violator&quot;, &quot;2 Pending …
+$ case_status                &lt;chr&gt; &quot;ACTIVE&quot;, &quot;ACTIVE&quot;, &quot;6-Deported/Removed - D…
+$ case_category              &lt;chr&gt; &quot;[1A] Voluntary Departure - Un-Expired and …
+$ departed_date              &lt;dttm&gt; NA, NA, 2024-09-05, 2025-06-25, 2025-02-12…
+$ departure_country          &lt;chr&gt; NA, NA, &quot;GUYANA&quot;, &quot;COLOMBIA&quot;, &quot;EL SALVADOR&quot;…
+$ final_order_yes_no         &lt;chr&gt; &quot;NO&quot;, &quot;NO&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;YE…
+$ final_order_date           &lt;dttm&gt; NA, NA, 2014-03-13, 2025-03-02, 2025-01-10…
+$ birth_year                 &lt;dbl&gt; 2002, 1984, 1968, 2004, 2000, 2003, 2000, 1…
+$ citizenship_country        &lt;chr&gt; &quot;HONDURAS&quot;, &quot;MEXICO&quot;, &quot;GUYANA&quot;, &quot;COLOMBIA&quot;,…
+$ gender                     &lt;chr&gt; &quot;Male&quot;, &quot;Male&quot;, &quot;Female&quot;, &quot;Male&quot;, &quot;Male&quot;, &quot;…
+$ apprehension_site_landmark &lt;chr&gt; &quot;MTG GENERAL AREA, NON-SPECIFIC&quot;, &quot;NORTH LA…
+$ unique_identifier          &lt;chr&gt; &quot;000066a0cf0da888503506a0bd39e0772fada2ce&quot;,…</code></pre>
+</div>
 </div>
 </section>
-<section id="date-columns" class="level4">
-<h4 class="anchored" data-anchor-id="date-columns">2. Date columns</h4>
-<p>Convert date-only to date; create new column with date only from those with time.</p>
-<div class="cell">
-<details open class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>deduped_date_fix <span class="ot">&lt;-</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  deduped_xl <span class="sc">|&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>  ( <span class="at">apprehension_date_part =</span> <span class="fu">as_date</span>( apprehension_date) ,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">across</span> ( <span class="fu">c</span>(final_order_date, departed_date), as_date)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</section>
-</section>
-<section id="create-convenience-columns" class="level2">
-<h2 class="anchored" data-anchor-id="create-convenience-columns">Create convenience columns</h2>
-<p>I’ve created a spreadsheet of lookup values that is easier to use than copying and pasting. It also ensures that I use the same lookups for different tables with the same column definitions.</p>
-<p>Read the data lookup sheet (easier than copying and pasting into the code):</p>
+<section id="basic-cleanup" class="level2">
+<h2 class="anchored" data-anchor-id="basic-cleanup">Basic cleanup</h2>
+<section id="dates-and-missing-values" class="level3">
+<h3 class="anchored" data-anchor-id="dates-and-missing-values">Dates and missing values</h3>
+<ol type="1">
+<li><p>Convert dates and times: The date fields always have time elements, but only <code>apprehension_date</code> has meaningful time value. Create <code>apprehension_date_part</code> with the date portion and convert all of the others to date only.</p></li>
+<li><p>About 2,500 rows have no unique identifier for people. For the purpose of finding and removing duplicates, create a <code>person_id</code>, which is the <code>unique_identifier</code> when it exists and a combination of arrest date, area of responsibility (or state or “UNKNOWN” when it doesn’t exist) , and birth year. There’s a pretty good chance that we could have multiple people arrested at the same time in the same place who are the same age but there’s really not much other choice that I can see.</p></li>
+</ol>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-lookups</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fix-dates</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">read_excel</span> (<span class="fu">here</span>(<span class="st">&quot;documentation/background/master_data_dictionary_lookups.xlsx&quot;</span>),<span class="at">sheet=</span><span class="st">&quot;lookups&quot;</span> )</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>master_xl <span class="ot">&lt;-</span> orig_xls <span class="sc">|&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span> ( <span class="at">apprehension_date_part =</span><span class="fu">as_date</span>(  apprehension_date),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            <span class="co"># convert datetime to date when it&#39;s always midnight</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">across</span> ( <span class="fu">c</span> ( final_order_date, departed_date), as_date),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">alternate_id =</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">paste</span>( <span class="fu">format</span>(apprehension_date_part, <span class="st">&quot;%Y-%m-%d&quot;</span>) ,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">coalesce</span> ( apprehension_aor, apprehension_state, <span class="st">&quot;UNKNOWN&quot;</span> ) ,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">coalesce</span> ( <span class="fu">sprintf</span>(<span class="st">&quot;%04d&quot;</span>, birth_year) , <span class="st">&quot;0000&quot;</span> ),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">sep=</span><span class="st">&quot;-&quot;</span>) ,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">person_id =</span> <span class="fu">coalesce</span> (unique_identifier,  alternate_id) ,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">.after =</span> unique_identifier</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span> ( orig_row_id, person_id, unique_identifier, apprehension_date, apprehension_date_part,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>            apprehension_aor, apprehension_state, apprehension_site_landmark,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>            final_program<span class="sc">:</span>gender) <span class="sc">|&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span> ( person_id, apprehension_date, orig_row_id) <span class="sc">|&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span> ( person_id, apprehension_date) <span class="sc">|&gt;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fill</span> ( apprehension_aor, apprehension_state) <span class="sc">|&gt;</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span> ( orig_row_id)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>datelist <span class="ot">&lt;-</span> master_xl <span class="sc">|&gt;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span> ( <span class="at">min_arrest_dt =</span> <span class="fu">min</span> (apprehension_date_part, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>              <span class="at">max_arrest_dt =</span> <span class="fu">max</span> ( apprehension_date_part, <span class="at">na.rm=</span><span class="cn">FALSE</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">|&gt;</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span> (<span class="fu">everything</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span> ( value ) <span class="sc">|&gt;</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>( <span class="st">&quot;%B %e, %Y&quot;</span>)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="lookup-table-applications" class="level3">
-<h3 class="anchored" data-anchor-id="lookup-table-applications">Lookup table applications</h3>
-<p>In practice, I worked on the lookup tables one at a time. The decisions were made based on the combinations I saw and other peoples’ coding. See the documentation for more detail on individual column definitions.</p>
-<p>(This actually works one at a time, not as one big process, so it could be slow on bigger tables. It happens that the arrest table isn’t that big and isn’t updated very often.)</p>
+<p>This data begins September 1, 2023 and ends July 29, 2025, has 291,722</p>
+</section>
+<section id="duplicates" class="level3">
+<h3 class="anchored" data-anchor-id="duplicates">Duplicates</h3>
+<p>The original sort order is by the original <code>unique_identifier</code> (missing is at the end), then date/time of apprehension. It’s unclear which comes first when they’re the same – we don’t know for sure whether to take the first or last of these to create a unique item for that person at that time. However, it appears that in most duplicate cases, there are a series of entries that contain <code>case_status</code> of “E-Charging Document Canceled by ICE”, followed by something else. In those cases, the aor and state is often missing. Because they’re the same person at the same time, I chose to fill in those missing values.</p>
+<p>Don’t confuse these with what appear to be true multiple arrests – entries where the person was arrested in, say, 2023 and also 2025. I’m leaving those in.</p>
+<p>I’m using the data table method here because I know later on I’ll need the code for bigger tables.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># function to create lookups</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># df:       the data frame to work on as data frame</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># apply_to: name of column that should be looked up as character value</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># new_name: name of the column I want created as character value</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Requires: lookup_table read in previous step</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: keep-unique</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>DT <span class="ot">&lt;-</span> <span class="fu">copy</span>(master_xl)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">setDT</span>(DT)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">setorderv</span>(DT, <span class="fu">c</span>(<span class="st">&quot;person_id&quot;</span>, <span class="st">&quot;apprehension_date&quot;</span>, <span class="st">&quot;orig_row_id&quot;</span>))</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>lkp_table_values <span class="ot">&lt;-</span> <span class="cf">function</span> ( df,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                              apply_to,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                              new_name)  {</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># lookup_tables exists, and has columns `initial value`, `recode` and `varname`</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># df is a data frame with a column that matches the apply_to argument</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  lkp_filtered <span class="ot">=</span> lookup_tables <span class="sc">|&gt;</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span> ( varname <span class="sc">==</span> apply_to)</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  lkp_selected <span class="ot">=</span> lkp_filtered <span class="sc">|&gt;</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span> ( <span class="at">lkp_val =</span> <span class="st">`</span><span class="at">initial value</span><span class="st">`</span>,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            <span class="co"># this is how to apply a char value as a column name.</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            <span class="sc">!!</span><span class="at">new_name :=</span> recode)</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  return_df <span class="ot">=</span> df <span class="sc">|&gt;</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span> ( lkp_selected,</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                <span class="fu">join_by</span> (<span class="sc">!!</span><span class="fu">sym</span>(apply_to)  <span class="sc">==</span> lkp_val ) )</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (return_df)</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># compute dupe_count for each group (adds column by reference, very fast)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>DT[, dupe_count <span class="sc">:</span><span class="er">=</span> .N, by <span class="ot">=</span> .(person_id, apprehension_date)]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># take the last row of each group (because we&#39;ve ordered the table above)</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>deduped <span class="ot">&lt;-</span> DT[, .SD[.N], by <span class="ot">=</span> .(person_id, apprehension_date)]</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(deduped)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Classes &#39;data.table&#39; and &#39;data.frame&#39;:  289947 obs. of  21 variables:
+ $ person_id                 : chr  &quot;000066a0cf0da888503506a0bd39e0772fada2ce&quot; &quot;0000718e93d4f75cdec49ccdd21bf7a09f48a8b7&quot; &quot;0000f265b1ff8abbfbec54888dd2cddb62e21625&quot; &quot;00010f535759072a0dfa031f9f3fc5774e49ccee&quot; ...
+ $ apprehension_date         : POSIXct, format: &quot;2025-07-26 18:50:27&quot; &quot;2025-07-02 17:57:46&quot; ...
+ $ orig_row_id               : int  1 2 3 4 5 6 7 8 9 10 ...
+ $ unique_identifier         : chr  &quot;000066a0cf0da888503506a0bd39e0772fada2ce&quot; &quot;0000718e93d4f75cdec49ccdd21bf7a09f48a8b7&quot; &quot;0000f265b1ff8abbfbec54888dd2cddb62e21625&quot; &quot;00010f535759072a0dfa031f9f3fc5774e49ccee&quot; ...
+ $ apprehension_date_part    : Date, format: &quot;2025-07-26&quot; &quot;2025-07-02&quot; ...
+ $ apprehension_aor          : chr  &quot;Houston Area of Responsibility&quot; &quot;Salt Lake City Area of Responsibility&quot; &quot;New York City Area of Responsibility&quot; &quot;San Antonio Area of Responsibility&quot; ...
+ $ apprehension_state        : chr  &quot;TEXAS&quot; &quot;NEVADA&quot; &quot;NEW YORK&quot; &quot;TEXAS&quot; ...
+ $ apprehension_site_landmark: chr  &quot;MTG GENERAL AREA, NON-SPECIFIC&quot; &quot;NORTH LAS VEGAS DETENTION CENTER&quot; &quot;CAP - BEDFORD CORRECTIONAL FACILITY NY STATE&quot; &quot;DLR GENERAL AREA, NON-SPECIFIC&quot; ...
+ $ final_program             : chr  &quot;ERO Criminal Alien Program&quot; &quot;ERO Criminal Alien Program&quot; &quot;ERO Criminal Alien Program&quot; &quot;ERO Criminal Alien Program&quot; ...
+ $ apprehension_method       : chr  &quot;Custodial Arrest&quot; &quot;CAP Local Incarceration&quot; &quot;CAP State Incarceration&quot; &quot;CAP Federal Incarceration&quot; ...
+ $ apprehension_criminality  : chr  &quot;3 Other Immigration Violator&quot; &quot;2 Pending Criminal Charges&quot; &quot;1 Convicted Criminal&quot; &quot;1 Convicted Criminal&quot; ...
+ $ case_status               : chr  &quot;ACTIVE&quot; &quot;ACTIVE&quot; &quot;6-Deported/Removed - Deportability&quot; &quot;8-Excluded/Removed - Inadmissibility&quot; ...
+ $ case_category             : chr  &quot;[1A] Voluntary Departure - Un-Expired and Un-Extended Departure Period&quot; &quot;[8B] Excludable / Inadmissible - Under Adjudication by IJ&quot; &quot;[3] Deportable - Administratively Final Order&quot; &quot;[8F] Expedited Removal&quot; ...
+ $ departed_date             : Date, format: NA NA ...
+ $ departure_country         : chr  NA NA &quot;GUYANA&quot; &quot;COLOMBIA&quot; ...
+ $ final_order_yes_no        : chr  &quot;NO&quot; &quot;NO&quot; &quot;YES&quot; &quot;YES&quot; ...
+ $ final_order_date          : Date, format: NA NA ...
+ $ birth_year                : num  2002 1984 1968 2004 2000 ...
+ $ citizenship_country       : chr  &quot;HONDURAS&quot; &quot;MEXICO&quot; &quot;GUYANA&quot; &quot;COLOMBIA&quot; ...
+ $ gender                    : chr  &quot;Male&quot; &quot;Male&quot; &quot;Female&quot; &quot;Male&quot; ...
+ $ dupe_count                : int  1 1 1 1 1 1 1 1 1 1 ...
+ - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt; </code></pre>
 </div>
-<p>Apply the lookup table to the original:</p>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This will still include duplicates by person because there were a lot of people arrested in earlier years and again in 2025. Be sure to distinct_n() rather than n() whenever it’s important to count people by group.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="create-more-general-categories-and-apply-lookups" class="level2">
+<h2 class="anchored" data-anchor-id="create-more-general-categories-and-apply-lookups">Create more general categories and apply lookups</h2>
+<p>The case information is often pretty specific, and we want to be able to talk about broad groupings. I’ve documented where those groupings come from in the &lt;documentation/docs-alldata.qmd&gt; – they cross a lot of the datasets. Here, I’m just applying those decisions to this set of data.</p>
+<p>Generally, the decisions were made based on the combinations I saw and other peoples’ publications or coding.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: collapse-final-program</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>list_of_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;final_program&quot;</span> <span class="ot">=</span> <span class="st">&quot;final_program_type&quot;</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;apprehension_method&quot;</span> <span class="ot">=</span> <span class="st">&quot;apprehension_method_type&quot;</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>working_table <span class="ot">&lt;-</span> deduped_date_fix</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ( n <span class="cf">in</span> <span class="fu">names</span>(list_of_vars) ) {</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  working_table <span class="ot">=</span> <span class="fu">lkp_table_values</span> ( working_table, n , list_of_vars[n])</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- lkp_table_values( deduped_date_fix, &quot;final_program&quot;, &quot;final_program_type&quot;)</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- working_table (arrest_prog_types , &quot;apprehension_method&quot;, &quot;apprehension_method_type&quot;)</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- working_table ()</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(working_table)</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-lookups</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="do">## Applies all of the lookup tabes that I&#39;ve finished</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">read_excel</span> (<span class="fu">here</span>(<span class="st">&quot;documentation/background/master_data_dictionary_lookups.xlsx&quot;</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">sheet=</span><span class="st">&quot;lookups&quot;</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">na=</span> <span class="fu">c</span>(<span class="st">&quot;&quot;</span>, <span class="st">&quot;N/A&quot;</span>) ) <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">select</span> ( tables, varname, <span class="at">orig_value =</span> <span class="st">`</span><span class="at">initial value</span><span class="st">`</span>, <span class="at">recode_to =</span> recode)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>list_of_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;final_program&quot;</span>, <span class="st">&quot;apprehension_method&quot;</span>, <span class="st">&quot;case_status&quot;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># create a list of named vectors to use in mutate statement</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">#THESE DEPEND ON OLD-STYLE %&gt;% NOT |&gt; --------------------------------</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co"># it&#39;s way easier to do tmp functions and use the . placeholder than do it in</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># base R and new syntax.</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>mapping_list <span class="ot">&lt;-</span> lookup_tables <span class="sc">%&gt;%</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span> (<span class="sc">!</span><span class="fu">is.na</span>( orig_value),</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>            varname <span class="sc">%in%</span> list_of_vars) <span class="sc">%&gt;%</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">orig_value   =</span> <span class="fu">as.character</span>(orig_value),</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>      <span class="co"># in case they&#39;re factors</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">recode_to =</span> <span class="fu">as.character</span>(recode_to)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">split</span>(.<span class="sc">$</span>varname) <span class="sc">%&gt;%</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span> <span class="fu">setNames</span>(.x<span class="sc">$</span>recode_to, .x<span class="sc">$</span>orig_value))</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co"># this is still working on the data.table. Have to convert it back to the tibble to see the values.</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>df_recoded <span class="ot">&lt;-</span> deduped <span class="sc">%&gt;%</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(list_of_vars),</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span> {</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>                  col_vec <span class="ot">&lt;-</span> mapping_list[[<span class="fu">cur_column</span>()]]</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#col_vec is a named vector for the current column</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>                  return_value <span class="ot">&lt;-</span> col_vec[ <span class="fu">as.character</span>(.) ]</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#res is the value in the current column use as the name for the vector value.</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>                },</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>                <span class="at">.names  =</span>  <span class="st">&quot;{.col}_recoded&quot;</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a><span class="co">#----------------------------------------------------------------------------</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_recoded)</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">working_table</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">291668</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">20</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">character</td>
-<td style="text-align: left;">15</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Date</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">POSIXct</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: character</strong></p>
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 31%">
-<col style="width: 11%">
-<col style="width: 16%">
-<col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 12%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">min</th>
-<th style="text-align: right;">max</th>
-<th style="text-align: right;">empty</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: right;">whitespace</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">apprehension_state</td>
-<td style="text-align: right;">56697</td>
-<td style="text-align: right;">0.81</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">apprehension_aor</td>
-<td style="text-align: right;">5975</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">26</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">final_program</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">apprehension_method</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">43</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">apprehension_criminality</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">28</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">case_status</td>
-<td style="text-align: right;">4444</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">44</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">case_category</td>
-<td style="text-align: right;">4444</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">22</td>
-<td style="text-align: right;">75</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">departure_country</td>
-<td style="text-align: right;">123318</td>
-<td style="text-align: right;">0.58</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">final_order_yes_no</td>
-<td style="text-align: right;">4444</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">citizenship_country</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">195</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">apprehension_site_landmark</td>
-<td style="text-align: right;">6264</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">80</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">5106</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">unique_identifier</td>
-<td style="text-align: right;">2470</td>
-<td style="text-align: right;">0.99</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">274016</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">final_program_type</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">15</td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">apprehension_method_type</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: Date</strong></p>
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 11%">
-<col style="width: 15%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 10%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">min</th>
-<th style="text-align: left;">max</th>
-<th style="text-align: left;">median</th>
-<th style="text-align: right;">n_unique</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">departed_date</td>
-<td style="text-align: right;">123277</td>
-<td style="text-align: right;">0.58</td>
-<td style="text-align: left;">1923-09-14</td>
-<td style="text-align: left;">2025-07-28</td>
-<td style="text-align: left;">2025-02-10</td>
-<td style="text-align: right;">718</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">final_order_date</td>
-<td style="text-align: right;">113683</td>
-<td style="text-align: right;">0.61</td>
-<td style="text-align: left;">1967-01-06</td>
-<td style="text-align: left;">2025-07-29</td>
-<td style="text-align: left;">2024-04-16</td>
-<td style="text-align: right;">9927</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">apprehension_date_part</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: left;">2023-09-01</td>
-<td style="text-align: left;">2025-07-29</td>
-<td style="text-align: left;">2024-12-18</td>
-<td style="text-align: right;">698</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 10%">
-<col style="width: 3%">
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">birth_year</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1989.94</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">1934</td>
-<td style="text-align: right;">1983</td>
-<td style="text-align: right;">1991</td>
-<td style="text-align: right;">1998</td>
-<td style="text-align: right;">2025</td>
-<td style="text-align: left;">▁▁▆▇▁</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: POSIXct</strong></p>
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 9%">
-<col style="width: 13%">
-<col style="width: 10%">
-<col style="width: 19%">
-<col style="width: 19%">
-<col style="width: 8%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">min</th>
-<th style="text-align: left;">max</th>
-<th style="text-align: left;">median</th>
-<th style="text-align: right;">n_unique</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">apprehension_date</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2023-09-01</td>
-<td style="text-align: left;">2025-07-29 01:14:44</td>
-<td style="text-align: left;">2024-12-18 15:33:00</td>
-<td style="text-align: right;">230181</td>
-</tr>
-</tbody>
-</table>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 289,947
+Columns: 24
+$ person_id                   &lt;chr&gt; &quot;000066a0cf0da888503506a0bd39e0772fada2ce&quot;…
+$ apprehension_date           &lt;dttm&gt; 2025-07-26 18:50:27, 2025-07-02 17:57:46,…
+$ orig_row_id                 &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,…
+$ unique_identifier           &lt;chr&gt; &quot;000066a0cf0da888503506a0bd39e0772fada2ce&quot;…
+$ apprehension_date_part      &lt;date&gt; 2025-07-26, 2025-07-02, 2024-07-05, 2025-…
+$ apprehension_aor            &lt;chr&gt; &quot;Houston Area of Responsibility&quot;, &quot;Salt La…
+$ apprehension_state          &lt;chr&gt; &quot;TEXAS&quot;, &quot;NEVADA&quot;, &quot;NEW YORK&quot;, &quot;TEXAS&quot;, &quot;T…
+$ apprehension_site_landmark  &lt;chr&gt; &quot;MTG GENERAL AREA, NON-SPECIFIC&quot;, &quot;NORTH L…
+$ final_program               &lt;chr&gt; &quot;ERO Criminal Alien Program&quot;, &quot;ERO Crimina…
+$ apprehension_method         &lt;chr&gt; &quot;Custodial Arrest&quot;, &quot;CAP Local Incarcerati…
+$ apprehension_criminality    &lt;chr&gt; &quot;3 Other Immigration Violator&quot;, &quot;2 Pending…
+$ case_status                 &lt;chr&gt; &quot;ACTIVE&quot;, &quot;ACTIVE&quot;, &quot;6-Deported/Removed - …
+$ case_category               &lt;chr&gt; &quot;[1A] Voluntary Departure - Un-Expired and…
+$ departed_date               &lt;date&gt; NA, NA, 2024-09-05, 2025-06-25, 2025-02-1…
+$ departure_country           &lt;chr&gt; NA, NA, &quot;GUYANA&quot;, &quot;COLOMBIA&quot;, &quot;EL SALVADOR…
+$ final_order_yes_no          &lt;chr&gt; &quot;NO&quot;, &quot;NO&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;YES&quot;, &quot;Y…
+$ final_order_date            &lt;date&gt; NA, NA, 2014-03-13, 2025-03-02, 2025-01-1…
+$ birth_year                  &lt;dbl&gt; 2002, 1984, 1968, 2004, 2000, 2003, 2000, …
+$ citizenship_country         &lt;chr&gt; &quot;HONDURAS&quot;, &quot;MEXICO&quot;, &quot;GUYANA&quot;, &quot;COLOMBIA&quot;…
+$ gender                      &lt;chr&gt; &quot;Male&quot;, &quot;Male&quot;, &quot;Female&quot;, &quot;Male&quot;, &quot;Male&quot;, …
+$ dupe_count                  &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+$ final_program_recoded       &lt;chr&gt; &quot;Criminal justice system&quot;, &quot;Criminal justi…
+$ apprehension_method_recoded &lt;chr&gt; &quot;From detention&quot;, &quot;From detention&quot;, &quot;From …
+$ case_status_recoded         &lt;chr&gt; &quot;Active case&quot;, &quot;Active case&quot;, &quot;Excluded / …</code></pre>
 </div>
 </div>
+<section id="saving-the-processed-files" class="level3">
+<h3 class="anchored" data-anchor-id="saving-the-processed-files">Saving the processed files</h3>
+<div class="cell">
+<details open class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save-rda-file</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">saveit</span> (  master_xl, lookup_tables, df_recoded,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">string=</span><span class="fu">c</span>(<span class="st">&quot;arrests_original&quot;</span>, <span class="st">&quot;lookup_tables&quot;</span>, <span class="st">&quot;arrests_recoded&quot;</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">file=</span><span class="st">&quot;data/processed/arrests.Rda&quot;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in gzfile(file, &quot;wb&quot;): cannot open compressed file
+&#39;data/processed/arrests.Rda&#39;, probable reason &#39;No such file or directory&#39;</code></pre>
+</div>
+<div class="cell-output cell-output-error">
+<pre><code>Error in gzfile(file, &quot;wb&quot;): cannot open the connection</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="diagnostics" class="level2">
+<h2 class="anchored" data-anchor-id="diagnostics">Diagnostics</h2>
+<p>It’s still not entirely clear what these columns represent, so I wanted to make some charts of their frequency and how they relate to one another.</p>
+<div class="cell">
+<details open class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: add-libraries-for-analysis</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="st">&quot;reactable&quot;</span>, <span class="st">&quot;reactablefmtr&quot;</span>, <span class="st">&quot;DT&quot;</span>, <span class="st">&quot;janitor&quot;</span>, <span class="st">&quot;skimr&quot;</span>, <span class="st">&quot;GGalley&quot;</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package &#39;GGalley&#39; is not available for this version of R
+
+A version of this package for your version of R might be available elsewhere,
+see the ideas at
+https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Installing-packages</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: &#39;BiocManager&#39; not available.  Could not check Bioconductor.
+
+Please use `install.packages(&#39;BiocManager&#39;)` and then retry.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in p_install(package, character.only = TRUE, ...):</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in library(package, lib.loc = lib.loc, character.only = TRUE,
+logical.return = TRUE, : there is no package called &#39;GGalley&#39;</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in pacman::p_load(&quot;reactable&quot;, &quot;reactablefmtr&quot;, &quot;DT&quot;, &quot;janitor&quot;, : Failed to install/load:
+GGalley</code></pre>
+</div>
+</div>
+<ol type="1">
+<li>Is there a way to look at Kavanaugh stops from this?</li>
+</ol>
 <!-- -->
 
 </section>
-</section>
 
-</main>
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>It uses the <code>janitor::clean_names()</code> function, so it’s always done the same way.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -3199,200 +3066,350 @@ vertical-align: -.125em;
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class>
-<div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> Sarah Cohen</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Arrest table cleanup</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> &quot;&quot;</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">  scdefault-html:</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: false</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: fenced</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: true</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">  message: true</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">  error: true</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: false</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="an">engine:</span><span class="co"> knitr</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>The arrests table cleanup is done in this document. See the documentation for details on why and how it ends up.</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: fenced</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co"># assumes pacman has been installed already</span></span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="co"># typical packages</span></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="st">&quot;glue&quot;</span>, <span class="st">&quot;lubridate&quot;</span>, <span class="st">&quot;janitor&quot;</span>, <span class="st">&quot;readxl&quot;</span>, <span class="st">&quot;here&quot;</span>, <span class="st">&quot;googlesheets4&quot;</span>)</span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">&quot;programs/clean/01-arrest-checks.qmd&quot;</span>)</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="co">#additional packages here</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr)</span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>orig_xl_date <span class="ot">&lt;-</span> <span class="fu">mdy</span>(<span class="st">&quot;10/14/2025&quot;</span>)</span>
-<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>::: confidential</span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>Not for publication</span>
-<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>Data Last Updated: <span class="in">`{r} format(orig_xl_date, &quot;%B %e, %Y&quot;)`</span></span>
-<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## Read original Excel file from Deportation Data Project</span></span>
-<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>The original Excel file has 19 columns that have to be imported with variable types to take care of Zip codes, dates and missing values. Reading everything as text has two problems: Lack of precision in numbers, and dates converted to serial numbers. The data header is at row 7 and the data starts row 8.</span>
-<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>Two collumns are dropped because they add no information: <span class="in">`final_program_group`</span> is always &quot;ICE&quot;, <span class="in">`apprehension_county`</span> is always missing. This could change in the future.</span>
-<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-arrest-rawdata</span></span>
-<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: true</span></span>
-<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: true</span></span>
-<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>var_types <span class="ot">&lt;-</span> <span class="fu">c</span> (<span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>,<span class="dv">9</span> ), <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;skip&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>, <span class="dv">3</span>),</span>
-<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rep</span>(<span class="st">&quot;skip&quot;</span>, <span class="dv">3</span>), <span class="st">&quot;text&quot;</span>)</span>
-<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>orig_xls <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(</span>
-<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_AdminArrests_07312025.xlsx&quot;</span></span>
-<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>                      ),</span>
-<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>                      <span class="at">skip=</span><span class="dv">6</span>,</span>
-<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>                      <span class="at">col_types =</span> var_types</span>
-<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>                      )  <span class="sc">|&gt;</span></span>
-<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>            <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>            <span class="fu">rowid_to_column</span>(<span class="at">var=</span><span class="st">&quot;orig_row_id&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>            <span class="co"># county is always empty</span></span>
-<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span> ( <span class="sc">-</span> <span class="fu">c</span>(apprehension_county, final_program_group))</span>
-<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## Basic cleanup</span></span>
-<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>At the end of this, I&#39;ll change the order of the columns so they make a little more sense.</span>
-<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 1. Remove true dupes</span></span>
-<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: remove-dupes</span></span>
-<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a>deduped_xl <span class="ot">&lt;-</span> orig_xls <span class="sc">|&gt;</span></span>
-<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span> ( <span class="fu">pick</span> (apprehension_date<span class="sc">:</span>unique_identifier))</span>
-<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 2. Date columns</span></span>
-<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>Convert date-only to date; create new column with date only from those with time.</span>
-<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>deduped_date_fix <span class="ot">&lt;-</span></span>
-<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>  deduped_xl <span class="sc">|&gt;</span></span>
-<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>  ( <span class="at">apprehension_date_part =</span> <span class="fu">as_date</span>( apprehension_date) ,</span>
-<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>            <span class="fu">across</span> ( <span class="fu">c</span>(final_order_date, departed_date), as_date)</span>
-<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## Create convenience columns</span></span>
-<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>I&#39;ve created a spreadsheet of lookup values that is easier to use than copying and pasting. It also ensures that I use the same lookups for different tables with the same column definitions.</span>
-<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>Read the data lookup sheet (easier than copying and pasting into the code):</span>
-<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-lookups</span></span>
-<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">read_excel</span> (<span class="fu">here</span>(<span class="st">&quot;documentation/background/master_data_dictionary_lookups.xlsx&quot;</span>),<span class="at">sheet=</span><span class="st">&quot;lookups&quot;</span> )</span>
-<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a><span class="fu">### Lookup table applications</span></span>
-<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a>In practice, I worked on the lookup tables one at a time. The decisions were made based on the combinations I saw and other peoples&#39; coding. See the documentation for more detail on individual column definitions.</span>
-<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>(This actually works one at a time, not as one big process, so it could be slow on bigger tables. It happens that the arrest table isn&#39;t that big and isn&#39;t updated very often.)</span>
-<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a><span class="co"># function to create lookups</span></span>
-<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a><span class="co"># df:       the data frame to work on as data frame</span></span>
-<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a><span class="co"># apply_to: name of column that should be looked up as character value</span></span>
-<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a><span class="co"># new_name: name of the column I want created as character value</span></span>
-<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Requires: lookup_table read in previous step</span></span>
-<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>lkp_table_values <span class="ot">&lt;-</span> <span class="cf">function</span> ( df,</span>
-<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a>                              apply_to,</span>
-<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>                              new_name)  {</span>
-<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a>  <span class="co"># lookup_tables exists, and has columns `initial value`, `recode` and `varname`</span></span>
-<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a>  <span class="co"># df is a data frame with a column that matches the apply_to argument</span></span>
-<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a>  lkp_filtered <span class="ot">=</span> lookup_tables <span class="sc">|&gt;</span></span>
-<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span> ( varname <span class="sc">==</span> apply_to)</span>
-<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a>  lkp_selected <span class="ot">=</span> lkp_filtered <span class="sc">|&gt;</span></span>
-<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span> ( <span class="at">lkp_val =</span> <span class="st">`</span><span class="at">initial value</span><span class="st">`</span>,</span>
-<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a>            <span class="co"># this is how to apply a char value as a column name.</span></span>
-<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a>            <span class="sc">!!</span><span class="at">new_name :=</span> recode)</span>
-<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a>  return_df <span class="ot">=</span> df <span class="sc">|&gt;</span></span>
-<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span> ( lkp_selected,</span>
-<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>                <span class="fu">join_by</span> (<span class="sc">!!</span><span class="fu">sym</span>(apply_to)  <span class="sc">==</span> lkp_val ) )</span>
-<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (return_df)</span>
-<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a>Apply the lookup table to the original:</span>
-<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-186"><a href="#cb8-186" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: collapse-final-program</span></span>
-<span id="cb8-187"><a href="#cb8-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-188"><a href="#cb8-188" aria-hidden="true" tabindex="-1"></a>list_of_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;final_program&quot;</span> <span class="ot">=</span> <span class="st">&quot;final_program_type&quot;</span>,</span>
-<span id="cb8-189"><a href="#cb8-189" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;apprehension_method&quot;</span> <span class="ot">=</span> <span class="st">&quot;apprehension_method_type&quot;</span>)</span>
-<span id="cb8-190"><a href="#cb8-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-191"><a href="#cb8-191" aria-hidden="true" tabindex="-1"></a>working_table <span class="ot">&lt;-</span> deduped_date_fix</span>
-<span id="cb8-192"><a href="#cb8-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-193"><a href="#cb8-193" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ( n <span class="cf">in</span> <span class="fu">names</span>(list_of_vars) ) {</span>
-<span id="cb8-194"><a href="#cb8-194" aria-hidden="true" tabindex="-1"></a>  working_table <span class="ot">=</span> <span class="fu">lkp_table_values</span> ( working_table, n , list_of_vars[n])</span>
-<span id="cb8-195"><a href="#cb8-195" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-196"><a href="#cb8-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-197"><a href="#cb8-197" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- lkp_table_values( deduped_date_fix, &quot;final_program&quot;, &quot;final_program_type&quot;)</span></span>
-<span id="cb8-198"><a href="#cb8-198" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- working_table (arrest_prog_types , &quot;apprehension_method&quot;, &quot;apprehension_method_type&quot;)</span></span>
-<span id="cb8-199"><a href="#cb8-199" aria-hidden="true" tabindex="-1"></a><span class="co">#working_table &lt;- working_table ()</span></span>
-<span id="cb8-200"><a href="#cb8-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-201"><a href="#cb8-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-202"><a href="#cb8-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-203"><a href="#cb8-203" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(working_table)</span>
-<span id="cb8-204"><a href="#cb8-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-205"><a href="#cb8-205" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-206"><a href="#cb8-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-209"><a href="#cb8-209" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-210"><a href="#cb8-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<div class="sourceCode" id="cb19" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> Sarah Cohen</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Arrest table cleanup</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> &quot;&quot;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">  scdefault-html:</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: false</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: fenced</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: true</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co">  message: true</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="co">  error: true</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: false</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="an">engine:</span><span class="co"> knitr</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>::: confidential</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>Not for publication</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>The arrests table cleanup is done in this document. See the</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>documentation for details on why and how it ends up.</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: fenced</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a><span class="co"># assumes pacman has been installed already</span></span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a><span class="co"># typical packages</span></span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="st">&quot;glue&quot;</span>, <span class="st">&quot;lubridate&quot;</span>, <span class="st">&quot;janitor&quot;</span>, <span class="st">&quot;readxl&quot;</span>, <span class="st">&quot;here&quot;</span>, <span class="st">&quot;googlesheets4&quot;</span>)</span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">&quot;programs/clean/01-arrest-checks.qmd&quot;</span>)</span>
+<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a><span class="co">#additional packages here</span></span>
+<span id="cb19-46"><a href="#cb19-46" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb19-47"><a href="#cb19-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-48"><a href="#cb19-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-49"><a href="#cb19-49" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> (<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb19-50"><a href="#cb19-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-51"><a href="#cb19-51" aria-hidden="true" tabindex="-1"></a><span class="co"># when was this last picked up from the Deportation Data Project?</span></span>
+<span id="cb19-52"><a href="#cb19-52" aria-hidden="true" tabindex="-1"></a>orig_xl_date <span class="ot">&lt;-</span> <span class="fu">mdy</span>(<span class="st">&quot;10/14/2025&quot;</span>)</span>
+<span id="cb19-53"><a href="#cb19-53" aria-hidden="true" tabindex="-1"></a><span class="co">#start with a blank slate</span></span>
+<span id="cb19-54"><a href="#cb19-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-55"><a href="#cb19-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-56"><a href="#cb19-56" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-57"><a href="#cb19-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-58"><a href="#cb19-58" aria-hidden="true" tabindex="-1"></a>Data Last Updated: <span class="in">`{r} format(orig_xl_date, &quot;%B %e, %Y&quot;)`</span></span>
+<span id="cb19-59"><a href="#cb19-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-62"><a href="#cb19-62" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-63"><a href="#cb19-63" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: convenience</span></span>
+<span id="cb19-64"><a href="#cb19-64" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb19-65"><a href="#cb19-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-66"><a href="#cb19-66" aria-hidden="true" tabindex="-1"></a><span class="co"># convenience functions</span></span>
+<span id="cb19-67"><a href="#cb19-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-68"><a href="#cb19-68" aria-hidden="true" tabindex="-1"></a><span class="co"># count numbr of rows with missing values in the specified column, optionally</span></span>
+<span id="cb19-69"><a href="#cb19-69" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered by a condition represented in a string.</span></span>
+<span id="cb19-70"><a href="#cb19-70" aria-hidden="true" tabindex="-1"></a>missing_nrow <span class="ot">&lt;-</span> <span class="cf">function</span>(df, missing_column, <span class="at">optional_filter =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb19-71"><a href="#cb19-71" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(optional_filter)) {</span>
+<span id="cb19-72"><a href="#cb19-72" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">=</span> df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!!</span>rlang<span class="sc">::</span><span class="fu">parse_expr</span>(optional_filter))</span>
+<span id="cb19-73"><a href="#cb19-73" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb19-74"><a href="#cb19-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-75"><a href="#cb19-75" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">=</span> df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(.data[[missing_column]]))</span>
+<span id="cb19-76"><a href="#cb19-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>(filtered_df)</span>
+<span id="cb19-77"><a href="#cb19-77" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-78"><a href="#cb19-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-79"><a href="#cb19-79" aria-hidden="true" tabindex="-1"></a><span class="co"># Round to nearest N means  you can use 500, not just 1, 100, 1000, etc.</span></span>
+<span id="cb19-80"><a href="#cb19-80" aria-hidden="true" tabindex="-1"></a><span class="co"># Uses R rounding method, which would take 449.5 to 448, not 500, but I don&#39;t think</span></span>
+<span id="cb19-81"><a href="#cb19-81" aria-hidden="true" tabindex="-1"></a><span class="co"># it matters here. There won&#39;t be anything that odd.</span></span>
+<span id="cb19-82"><a href="#cb19-82" aria-hidden="true" tabindex="-1"></a>round_nearest_n <span class="ot">&lt;-</span> <span class="cf">function</span> (x,  n ) {</span>
+<span id="cb19-83"><a href="#cb19-83" aria-hidden="true" tabindex="-1"></a>  rounded_value <span class="ot">=</span> <span class="fu">round</span> ( x <span class="sc">/</span> n) <span class="sc">*</span> n</span>
+<span id="cb19-84"><a href="#cb19-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (<span class="fu">formatC</span>(rounded_value, <span class="at">format =</span> <span class="st">&quot;d&quot;</span>, <span class="at">big.mark =</span> <span class="st">&quot;,&quot;</span>) )</span>
+<span id="cb19-85"><a href="#cb19-85" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-86"><a href="#cb19-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-87"><a href="#cb19-87" aria-hidden="true" tabindex="-1"></a><span class="co"># Takes an optional  list of objects, a string vector, and a file name</span></span>
+<span id="cb19-88"><a href="#cb19-88" aria-hidden="true" tabindex="-1"></a><span class="co"># to save an Rda with objects renamed from the original.</span></span>
+<span id="cb19-89"><a href="#cb19-89" aria-hidden="true" tabindex="-1"></a><span class="co"># example: saveit (  master_xl, lookup_tables, df_recoded ,</span></span>
+<span id="cb19-90"><a href="#cb19-90" aria-hidden="true" tabindex="-1"></a><span class="co">#                   string = c(&quot;arrest_original&quot;, &#39;arrest_lookups&#39;, &quot;arrest_recoded&quot;) ,</span></span>
+<span id="cb19-91"><a href="#cb19-91" aria-hidden="true" tabindex="-1"></a><span class="co">#                   file = &quot;/data/processed/arrests.Rda&quot;)</span></span>
+<span id="cb19-92"><a href="#cb19-92" aria-hidden="true" tabindex="-1"></a><span class="co"># the number of items in the vector have to match the number provided in the unlisted list</span></span>
+<span id="cb19-93"><a href="#cb19-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-94"><a href="#cb19-94" aria-hidden="true" tabindex="-1"></a>saveit <span class="ot">&lt;-</span> <span class="cf">function</span>(..., string, file) {</span>
+<span id="cb19-95"><a href="#cb19-95" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> <span class="fu">list</span>(...)</span>
+<span id="cb19-96"><a href="#cb19-96" aria-hidden="true" tabindex="-1"></a>        <span class="fu">names</span>(x) <span class="ot">&lt;-</span> string</span>
+<span id="cb19-97"><a href="#cb19-97" aria-hidden="true" tabindex="-1"></a>        <span class="fu">save</span>(<span class="at">list=</span><span class="fu">names</span>(x), <span class="at">file=</span>file, <span class="at">envir=</span><span class="fu">list2env</span>(x))</span>
+<span id="cb19-98"><a href="#cb19-98" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb19-99"><a href="#cb19-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-100"><a href="#cb19-100" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-101"><a href="#cb19-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-102"><a href="#cb19-102" aria-hidden="true" tabindex="-1"></a><span class="fu">## Read original Excel file from Deportation Data Project</span></span>
+<span id="cb19-103"><a href="#cb19-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-104"><a href="#cb19-104" aria-hidden="true" tabindex="-1"></a>The original Excel file has 19 columns that have to be imported with</span>
+<span id="cb19-105"><a href="#cb19-105" aria-hidden="true" tabindex="-1"></a>variable types to take care of Zip codes, dates and missing values.</span>
+<span id="cb19-106"><a href="#cb19-106" aria-hidden="true" tabindex="-1"></a>Reading everything as text has two problems: Floating point weirdness,</span>
+<span id="cb19-107"><a href="#cb19-107" aria-hidden="true" tabindex="-1"></a>and dates converted to serial numbers. The data header is at row 7 and</span>
+<span id="cb19-108"><a href="#cb19-108" aria-hidden="true" tabindex="-1"></a>the data starts row 8.</span>
+<span id="cb19-109"><a href="#cb19-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-110"><a href="#cb19-110" aria-hidden="true" tabindex="-1"></a>Two columns are dropped because they add no information:</span>
+<span id="cb19-111"><a href="#cb19-111" aria-hidden="true" tabindex="-1"></a><span class="in">`final_program_group`</span> is always &quot;ICE&quot;, <span class="in">`apprehension_county`</span> is always</span>
+<span id="cb19-112"><a href="#cb19-112" aria-hidden="true" tabindex="-1"></a>missing. This could change in the future.</span>
+<span id="cb19-113"><a href="#cb19-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-114"><a href="#cb19-114" aria-hidden="true" tabindex="-1"></a>I renamed the columns to a) lowercase everything; b) replace spaces and</span>
+<span id="cb19-115"><a href="#cb19-115" aria-hidden="true" tabindex="-1"></a>special characters with underscores.<span class="ot">[^1]</span></span>
+<span id="cb19-116"><a href="#cb19-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-117"><a href="#cb19-117" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>It uses the <span class="in">`janitor::clean_names()`</span> function, so it&#39;s always done</span>
+<span id="cb19-118"><a href="#cb19-118" aria-hidden="true" tabindex="-1"></a>    the same way.</span>
+<span id="cb19-119"><a href="#cb19-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-122"><a href="#cb19-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-123"><a href="#cb19-123" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-arrest-rawdata</span></span>
+<span id="cb19-124"><a href="#cb19-124" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: true</span></span>
+<span id="cb19-125"><a href="#cb19-125" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: true</span></span>
+<span id="cb19-126"><a href="#cb19-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-127"><a href="#cb19-127" aria-hidden="true" tabindex="-1"></a>var_types <span class="ot">&lt;-</span> <span class="fu">c</span> (<span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>,<span class="dv">9</span> ), <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;text&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="st">&quot;skip&quot;</span>, <span class="st">&quot;guess&quot;</span>, <span class="fu">rep</span>(<span class="st">&quot;text&quot;</span>, <span class="dv">3</span>),</span>
+<span id="cb19-128"><a href="#cb19-128" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rep</span>(<span class="st">&quot;skip&quot;</span>, <span class="dv">3</span>), <span class="st">&quot;text&quot;</span>)</span>
+<span id="cb19-129"><a href="#cb19-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-130"><a href="#cb19-130" aria-hidden="true" tabindex="-1"></a>orig_xls <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(</span>
+<span id="cb19-131"><a href="#cb19-131" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_AdminArrests_07312025.xlsx&quot;</span></span>
+<span id="cb19-132"><a href="#cb19-132" aria-hidden="true" tabindex="-1"></a>                      ),</span>
+<span id="cb19-133"><a href="#cb19-133" aria-hidden="true" tabindex="-1"></a>                      <span class="at">skip=</span><span class="dv">6</span>,</span>
+<span id="cb19-134"><a href="#cb19-134" aria-hidden="true" tabindex="-1"></a>                      <span class="at">col_types =</span> var_types</span>
+<span id="cb19-135"><a href="#cb19-135" aria-hidden="true" tabindex="-1"></a>                      )  <span class="sc">|&gt;</span></span>
+<span id="cb19-136"><a href="#cb19-136" aria-hidden="true" tabindex="-1"></a>            <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
+<span id="cb19-137"><a href="#cb19-137" aria-hidden="true" tabindex="-1"></a>            <span class="co"># I&#39;ll get the last arrest in the datast later.</span></span>
+<span id="cb19-138"><a href="#cb19-138" aria-hidden="true" tabindex="-1"></a>            <span class="fu">rowid_to_column</span>(<span class="at">var=</span><span class="st">&quot;orig_row_id&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-139"><a href="#cb19-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-140"><a href="#cb19-140" aria-hidden="true" tabindex="-1"></a>            <span class="co"># county is always empty</span></span>
+<span id="cb19-141"><a href="#cb19-141" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span> ( <span class="sc">-</span> <span class="fu">c</span>(apprehension_county, final_program_group))</span>
+<span id="cb19-142"><a href="#cb19-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-143"><a href="#cb19-143" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span> (orig_xls)</span>
+<span id="cb19-144"><a href="#cb19-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-145"><a href="#cb19-145" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-146"><a href="#cb19-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-147"><a href="#cb19-147" aria-hidden="true" tabindex="-1"></a><span class="fu">## Basic cleanup</span></span>
+<span id="cb19-148"><a href="#cb19-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-149"><a href="#cb19-149" aria-hidden="true" tabindex="-1"></a><span class="fu">### Dates and missing values</span></span>
+<span id="cb19-150"><a href="#cb19-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-151"><a href="#cb19-151" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Convert dates and times: The date fields always have time elements,</span>
+<span id="cb19-152"><a href="#cb19-152" aria-hidden="true" tabindex="-1"></a>    but only <span class="in">`apprehension_date`</span> has meaningful time value. Create</span>
+<span id="cb19-153"><a href="#cb19-153" aria-hidden="true" tabindex="-1"></a>    <span class="in">`apprehension_date_part`</span> with the date portion and convert all of</span>
+<span id="cb19-154"><a href="#cb19-154" aria-hidden="true" tabindex="-1"></a>    the others to date only.</span>
+<span id="cb19-155"><a href="#cb19-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-156"><a href="#cb19-156" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>About</span>
+<span id="cb19-157"><a href="#cb19-157" aria-hidden="true" tabindex="-1"></a>    <span class="in">`r missing_nrow( orig_xls, &quot;unique_identifier&quot;) |&gt; round_nearest_n(500)`</span></span>
+<span id="cb19-158"><a href="#cb19-158" aria-hidden="true" tabindex="-1"></a>    rows have no unique identifier for people. For the purpose of</span>
+<span id="cb19-159"><a href="#cb19-159" aria-hidden="true" tabindex="-1"></a>    finding and removing duplicates, create a <span class="in">`person_id`</span>, which is the</span>
+<span id="cb19-160"><a href="#cb19-160" aria-hidden="true" tabindex="-1"></a>    <span class="in">`unique_identifier`</span> when it exists and a combination of arrest date,</span>
+<span id="cb19-161"><a href="#cb19-161" aria-hidden="true" tabindex="-1"></a>    area of responsibility (or state or &quot;UNKNOWN&quot; when it doesn&#39;t exist)</span>
+<span id="cb19-162"><a href="#cb19-162" aria-hidden="true" tabindex="-1"></a>    , and birth year. There&#39;s a pretty good chance that we could have</span>
+<span id="cb19-163"><a href="#cb19-163" aria-hidden="true" tabindex="-1"></a>    multiple people arrested at the same time in the same place who are</span>
+<span id="cb19-164"><a href="#cb19-164" aria-hidden="true" tabindex="-1"></a>    the same age but there&#39;s really not much other choice that I can</span>
+<span id="cb19-165"><a href="#cb19-165" aria-hidden="true" tabindex="-1"></a>    see.</span>
+<span id="cb19-166"><a href="#cb19-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-167"><a href="#cb19-167" aria-hidden="true" tabindex="-1"></a><span class="in">```{r }</span></span>
+<span id="cb19-168"><a href="#cb19-168" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fix-dates</span></span>
+<span id="cb19-169"><a href="#cb19-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-170"><a href="#cb19-170" aria-hidden="true" tabindex="-1"></a>master_xl <span class="ot">&lt;-</span> orig_xls <span class="sc">|&gt;</span></span>
+<span id="cb19-171"><a href="#cb19-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span> ( <span class="at">apprehension_date_part =</span><span class="fu">as_date</span>(  apprehension_date),</span>
+<span id="cb19-172"><a href="#cb19-172" aria-hidden="true" tabindex="-1"></a>            <span class="co"># convert datetime to date when it&#39;s always midnight</span></span>
+<span id="cb19-173"><a href="#cb19-173" aria-hidden="true" tabindex="-1"></a>            <span class="fu">across</span> ( <span class="fu">c</span> ( final_order_date, departed_date), as_date),</span>
+<span id="cb19-174"><a href="#cb19-174" aria-hidden="true" tabindex="-1"></a>          <span class="at">alternate_id =</span></span>
+<span id="cb19-175"><a href="#cb19-175" aria-hidden="true" tabindex="-1"></a>                <span class="fu">paste</span>( <span class="fu">format</span>(apprehension_date_part, <span class="st">&quot;%Y-%m-%d&quot;</span>) ,</span>
+<span id="cb19-176"><a href="#cb19-176" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">coalesce</span> ( apprehension_aor, apprehension_state, <span class="st">&quot;UNKNOWN&quot;</span> ) ,</span>
+<span id="cb19-177"><a href="#cb19-177" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">coalesce</span> ( <span class="fu">sprintf</span>(<span class="st">&quot;%04d&quot;</span>, birth_year) , <span class="st">&quot;0000&quot;</span> ),</span>
+<span id="cb19-178"><a href="#cb19-178" aria-hidden="true" tabindex="-1"></a>                  <span class="at">sep=</span><span class="st">&quot;-&quot;</span>) ,</span>
+<span id="cb19-179"><a href="#cb19-179" aria-hidden="true" tabindex="-1"></a>    <span class="at">person_id =</span> <span class="fu">coalesce</span> (unique_identifier,  alternate_id) ,</span>
+<span id="cb19-180"><a href="#cb19-180" aria-hidden="true" tabindex="-1"></a>    <span class="at">.after =</span> unique_identifier</span>
+<span id="cb19-181"><a href="#cb19-181" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb19-182"><a href="#cb19-182" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span> ( orig_row_id, person_id, unique_identifier, apprehension_date, apprehension_date_part,</span>
+<span id="cb19-183"><a href="#cb19-183" aria-hidden="true" tabindex="-1"></a>            apprehension_aor, apprehension_state, apprehension_site_landmark,</span>
+<span id="cb19-184"><a href="#cb19-184" aria-hidden="true" tabindex="-1"></a>            final_program<span class="sc">:</span>gender) <span class="sc">|&gt;</span></span>
+<span id="cb19-185"><a href="#cb19-185" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span> ( person_id, apprehension_date, orig_row_id) <span class="sc">|&gt;</span></span>
+<span id="cb19-186"><a href="#cb19-186" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span> ( person_id, apprehension_date) <span class="sc">|&gt;</span></span>
+<span id="cb19-187"><a href="#cb19-187" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fill</span> ( apprehension_aor, apprehension_state) <span class="sc">|&gt;</span></span>
+<span id="cb19-188"><a href="#cb19-188" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb19-189"><a href="#cb19-189" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span> ( orig_row_id)</span>
+<span id="cb19-190"><a href="#cb19-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-191"><a href="#cb19-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-192"><a href="#cb19-192" aria-hidden="true" tabindex="-1"></a>datelist <span class="ot">&lt;-</span> master_xl <span class="sc">|&gt;</span></span>
+<span id="cb19-193"><a href="#cb19-193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span> ( <span class="at">min_arrest_dt =</span> <span class="fu">min</span> (apprehension_date_part, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb19-194"><a href="#cb19-194" aria-hidden="true" tabindex="-1"></a>              <span class="at">max_arrest_dt =</span> <span class="fu">max</span> ( apprehension_date_part, <span class="at">na.rm=</span><span class="cn">FALSE</span>)</span>
+<span id="cb19-195"><a href="#cb19-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-196"><a href="#cb19-196" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">|&gt;</span></span>
+<span id="cb19-197"><a href="#cb19-197" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span> (<span class="fu">everything</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb19-198"><a href="#cb19-198" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span> ( value ) <span class="sc">|&gt;</span></span>
+<span id="cb19-199"><a href="#cb19-199" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>( <span class="st">&quot;%B %e, %Y&quot;</span>)</span>
+<span id="cb19-200"><a href="#cb19-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-201"><a href="#cb19-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-202"><a href="#cb19-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-203"><a href="#cb19-203" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-204"><a href="#cb19-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-205"><a href="#cb19-205" aria-hidden="true" tabindex="-1"></a>This data begins <span class="in">`r datelist[1]`</span> and ends <span class="in">`r datelist[2]`</span>, has</span>
+<span id="cb19-206"><a href="#cb19-206" aria-hidden="true" tabindex="-1"></a><span class="in">`r format(nrow(master_xl), big.mark=&quot;,&quot;, scientific=FALSE)`</span></span>
+<span id="cb19-207"><a href="#cb19-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-210"><a href="#cb19-210" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-211"><a href="#cb19-211" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: cleanupenv1</span></span>
+<span id="cb19-212"><a href="#cb19-212" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb19-213"><a href="#cb19-213" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb19-214"><a href="#cb19-214" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb19-215"><a href="#cb19-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-216"><a href="#cb19-216" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> (datelist , var_types, orig_xls)</span>
+<span id="cb19-217"><a href="#cb19-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-218"><a href="#cb19-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-219"><a href="#cb19-219" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-220"><a href="#cb19-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-221"><a href="#cb19-221" aria-hidden="true" tabindex="-1"></a><span class="fu">### Duplicates</span></span>
+<span id="cb19-222"><a href="#cb19-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-223"><a href="#cb19-223" aria-hidden="true" tabindex="-1"></a>The original sort order is by the original <span class="in">`unique_identifier`</span> (missing</span>
+<span id="cb19-224"><a href="#cb19-224" aria-hidden="true" tabindex="-1"></a>is at the end), then date/time of apprehension. It&#39;s unclear which comes</span>
+<span id="cb19-225"><a href="#cb19-225" aria-hidden="true" tabindex="-1"></a>first when they&#39;re the same -- we don&#39;t know for sure whether to take</span>
+<span id="cb19-226"><a href="#cb19-226" aria-hidden="true" tabindex="-1"></a>the first or last of these to create a unique item for that person at</span>
+<span id="cb19-227"><a href="#cb19-227" aria-hidden="true" tabindex="-1"></a>that time. However, it appears that in most duplicate cases, there are a</span>
+<span id="cb19-228"><a href="#cb19-228" aria-hidden="true" tabindex="-1"></a>series of entries that contain <span class="in">`case_status`</span> of &quot;E-Charging Document</span>
+<span id="cb19-229"><a href="#cb19-229" aria-hidden="true" tabindex="-1"></a>Canceled by ICE&quot;, followed by something else. In those cases, the aor</span>
+<span id="cb19-230"><a href="#cb19-230" aria-hidden="true" tabindex="-1"></a>and state is often missing. Because they&#39;re the same person at the same</span>
+<span id="cb19-231"><a href="#cb19-231" aria-hidden="true" tabindex="-1"></a>time, I chose to fill in those missing values.</span>
+<span id="cb19-232"><a href="#cb19-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-233"><a href="#cb19-233" aria-hidden="true" tabindex="-1"></a>Don&#39;t confuse these with what appear to be true multiple arrests --</span>
+<span id="cb19-234"><a href="#cb19-234" aria-hidden="true" tabindex="-1"></a>entries where the person was arrested in, say, 2023 and also 2025. I&#39;m</span>
+<span id="cb19-235"><a href="#cb19-235" aria-hidden="true" tabindex="-1"></a>leaving those in.</span>
+<span id="cb19-236"><a href="#cb19-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-237"><a href="#cb19-237" aria-hidden="true" tabindex="-1"></a>I&#39;m using the data table method here because I know later on I&#39;ll need</span>
+<span id="cb19-238"><a href="#cb19-238" aria-hidden="true" tabindex="-1"></a>the code for bigger tables.</span>
+<span id="cb19-239"><a href="#cb19-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-242"><a href="#cb19-242" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-243"><a href="#cb19-243" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: keep-unique</span></span>
+<span id="cb19-244"><a href="#cb19-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-245"><a href="#cb19-245" aria-hidden="true" tabindex="-1"></a>DT <span class="ot">&lt;-</span> <span class="fu">copy</span>(master_xl)</span>
+<span id="cb19-246"><a href="#cb19-246" aria-hidden="true" tabindex="-1"></a><span class="fu">setDT</span>(DT)</span>
+<span id="cb19-247"><a href="#cb19-247" aria-hidden="true" tabindex="-1"></a><span class="fu">setorderv</span>(DT, <span class="fu">c</span>(<span class="st">&quot;person_id&quot;</span>, <span class="st">&quot;apprehension_date&quot;</span>, <span class="st">&quot;orig_row_id&quot;</span>))</span>
+<span id="cb19-248"><a href="#cb19-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-249"><a href="#cb19-249" aria-hidden="true" tabindex="-1"></a><span class="co"># compute dupe_count for each group (adds column by reference, very fast)</span></span>
+<span id="cb19-250"><a href="#cb19-250" aria-hidden="true" tabindex="-1"></a>DT[, dupe_count <span class="sc">:</span><span class="er">=</span> .N, by <span class="ot">=</span> .(person_id, apprehension_date)]</span>
+<span id="cb19-251"><a href="#cb19-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-252"><a href="#cb19-252" aria-hidden="true" tabindex="-1"></a><span class="co"># take the last row of each group (because we&#39;ve ordered the table above)</span></span>
+<span id="cb19-253"><a href="#cb19-253" aria-hidden="true" tabindex="-1"></a>deduped <span class="ot">&lt;-</span> DT[, .SD[.N], by <span class="ot">=</span> .(person_id, apprehension_date)]</span>
+<span id="cb19-254"><a href="#cb19-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-255"><a href="#cb19-255" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(deduped)</span>
+<span id="cb19-256"><a href="#cb19-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-257"><a href="#cb19-257" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-258"><a href="#cb19-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-259"><a href="#cb19-259" aria-hidden="true" tabindex="-1"></a>::: callout-caution</span>
+<span id="cb19-260"><a href="#cb19-260" aria-hidden="true" tabindex="-1"></a>This will still include duplicates by person because there were a lot of</span>
+<span id="cb19-261"><a href="#cb19-261" aria-hidden="true" tabindex="-1"></a>people arrested in earlier years and again in 2025. Be sure to</span>
+<span id="cb19-262"><a href="#cb19-262" aria-hidden="true" tabindex="-1"></a>distinct_n() rather than n() whenever it&#39;s important to count people by</span>
+<span id="cb19-263"><a href="#cb19-263" aria-hidden="true" tabindex="-1"></a>group.</span>
+<span id="cb19-264"><a href="#cb19-264" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-265"><a href="#cb19-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-266"><a href="#cb19-266" aria-hidden="true" tabindex="-1"></a><span class="fu">## Create more general categories and apply lookups</span></span>
+<span id="cb19-267"><a href="#cb19-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-268"><a href="#cb19-268" aria-hidden="true" tabindex="-1"></a>The case information is often pretty specific, and we want to be able to</span>
+<span id="cb19-269"><a href="#cb19-269" aria-hidden="true" tabindex="-1"></a>talk about broad groupings. I&#39;ve documented where those groupings come</span>
+<span id="cb19-270"><a href="#cb19-270" aria-hidden="true" tabindex="-1"></a>from in the <span class="sc">\&lt;</span>documentation/docs-alldata.qmd<span class="sc">\&gt;</span> -- they cross a lot of</span>
+<span id="cb19-271"><a href="#cb19-271" aria-hidden="true" tabindex="-1"></a>the datasets. Here, I&#39;m just applying those decisions to this set of</span>
+<span id="cb19-272"><a href="#cb19-272" aria-hidden="true" tabindex="-1"></a>data.</span>
+<span id="cb19-273"><a href="#cb19-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-274"><a href="#cb19-274" aria-hidden="true" tabindex="-1"></a>Generally, the decisions were made based on the combinations I saw and</span>
+<span id="cb19-275"><a href="#cb19-275" aria-hidden="true" tabindex="-1"></a>other peoples&#39; publications or coding.</span>
+<span id="cb19-276"><a href="#cb19-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-279"><a href="#cb19-279" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-280"><a href="#cb19-280" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: get-lookups</span></span>
+<span id="cb19-281"><a href="#cb19-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-282"><a href="#cb19-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-283"><a href="#cb19-283" aria-hidden="true" tabindex="-1"></a><span class="do">## Applies all of the lookup tabes that I&#39;ve finished</span></span>
+<span id="cb19-284"><a href="#cb19-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-285"><a href="#cb19-285" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">read_excel</span> (<span class="fu">here</span>(<span class="st">&quot;documentation/background/master_data_dictionary_lookups.xlsx&quot;</span>),</span>
+<span id="cb19-286"><a href="#cb19-286" aria-hidden="true" tabindex="-1"></a>                            <span class="at">sheet=</span><span class="st">&quot;lookups&quot;</span>,</span>
+<span id="cb19-287"><a href="#cb19-287" aria-hidden="true" tabindex="-1"></a>                            <span class="at">na=</span> <span class="fu">c</span>(<span class="st">&quot;&quot;</span>, <span class="st">&quot;N/A&quot;</span>) ) <span class="sc">|&gt;</span></span>
+<span id="cb19-288"><a href="#cb19-288" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">select</span> ( tables, varname, <span class="at">orig_value =</span> <span class="st">`</span><span class="at">initial value</span><span class="st">`</span>, <span class="at">recode_to =</span> recode)</span>
+<span id="cb19-289"><a href="#cb19-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-290"><a href="#cb19-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-291"><a href="#cb19-291" aria-hidden="true" tabindex="-1"></a>list_of_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;final_program&quot;</span>, <span class="st">&quot;apprehension_method&quot;</span>, <span class="st">&quot;case_status&quot;</span>)</span>
+<span id="cb19-292"><a href="#cb19-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-293"><a href="#cb19-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-294"><a href="#cb19-294" aria-hidden="true" tabindex="-1"></a><span class="co"># create a list of named vectors to use in mutate statement</span></span>
+<span id="cb19-295"><a href="#cb19-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-296"><a href="#cb19-296" aria-hidden="true" tabindex="-1"></a><span class="co">#THESE DEPEND ON OLD-STYLE %&gt;% NOT |&gt; --------------------------------</span></span>
+<span id="cb19-297"><a href="#cb19-297" aria-hidden="true" tabindex="-1"></a><span class="co"># it&#39;s way easier to do tmp functions and use the . placeholder than do it in</span></span>
+<span id="cb19-298"><a href="#cb19-298" aria-hidden="true" tabindex="-1"></a><span class="co"># base R and new syntax.</span></span>
+<span id="cb19-299"><a href="#cb19-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-300"><a href="#cb19-300" aria-hidden="true" tabindex="-1"></a>mapping_list <span class="ot">&lt;-</span> lookup_tables <span class="sc">%&gt;%</span></span>
+<span id="cb19-301"><a href="#cb19-301" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span> (<span class="sc">!</span><span class="fu">is.na</span>( orig_value),</span>
+<span id="cb19-302"><a href="#cb19-302" aria-hidden="true" tabindex="-1"></a>            varname <span class="sc">%in%</span> list_of_vars) <span class="sc">%&gt;%</span></span>
+<span id="cb19-303"><a href="#cb19-303" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb19-304"><a href="#cb19-304" aria-hidden="true" tabindex="-1"></a>      <span class="at">orig_value   =</span> <span class="fu">as.character</span>(orig_value),</span>
+<span id="cb19-305"><a href="#cb19-305" aria-hidden="true" tabindex="-1"></a>      <span class="co"># in case they&#39;re factors</span></span>
+<span id="cb19-306"><a href="#cb19-306" aria-hidden="true" tabindex="-1"></a>      <span class="at">recode_to =</span> <span class="fu">as.character</span>(recode_to)</span>
+<span id="cb19-307"><a href="#cb19-307" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb19-308"><a href="#cb19-308" aria-hidden="true" tabindex="-1"></a>    <span class="fu">split</span>(.<span class="sc">$</span>varname) <span class="sc">%&gt;%</span></span>
+<span id="cb19-309"><a href="#cb19-309" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span> <span class="fu">setNames</span>(.x<span class="sc">$</span>recode_to, .x<span class="sc">$</span>orig_value))</span>
+<span id="cb19-310"><a href="#cb19-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-311"><a href="#cb19-311" aria-hidden="true" tabindex="-1"></a><span class="co"># this is still working on the data.table. Have to convert it back to the tibble to see the values.</span></span>
+<span id="cb19-312"><a href="#cb19-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-313"><a href="#cb19-313" aria-hidden="true" tabindex="-1"></a>df_recoded <span class="ot">&lt;-</span> deduped <span class="sc">%&gt;%</span></span>
+<span id="cb19-314"><a href="#cb19-314" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(list_of_vars),</span>
+<span id="cb19-315"><a href="#cb19-315" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span> {</span>
+<span id="cb19-316"><a href="#cb19-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-317"><a href="#cb19-317" aria-hidden="true" tabindex="-1"></a>                  col_vec <span class="ot">&lt;-</span> mapping_list[[<span class="fu">cur_column</span>()]]</span>
+<span id="cb19-318"><a href="#cb19-318" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#col_vec is a named vector for the current column</span></span>
+<span id="cb19-319"><a href="#cb19-319" aria-hidden="true" tabindex="-1"></a>                  return_value <span class="ot">&lt;-</span> col_vec[ <span class="fu">as.character</span>(.) ]</span>
+<span id="cb19-320"><a href="#cb19-320" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#res is the value in the current column use as the name for the vector value.</span></span>
+<span id="cb19-321"><a href="#cb19-321" aria-hidden="true" tabindex="-1"></a>                },</span>
+<span id="cb19-322"><a href="#cb19-322" aria-hidden="true" tabindex="-1"></a>                <span class="at">.names  =</span>  <span class="st">&quot;{.col}_recoded&quot;</span></span>
+<span id="cb19-323"><a href="#cb19-323" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb19-324"><a href="#cb19-324" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb19-325"><a href="#cb19-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-326"><a href="#cb19-326" aria-hidden="true" tabindex="-1"></a><span class="co">#----------------------------------------------------------------------------</span></span>
+<span id="cb19-327"><a href="#cb19-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-328"><a href="#cb19-328" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_recoded)</span>
+<span id="cb19-329"><a href="#cb19-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-330"><a href="#cb19-330" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-331"><a href="#cb19-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-332"><a href="#cb19-332" aria-hidden="true" tabindex="-1"></a><span class="fu">### Saving the processed files</span></span>
+<span id="cb19-333"><a href="#cb19-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-336"><a href="#cb19-336" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-337"><a href="#cb19-337" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save-rda-file</span></span>
+<span id="cb19-338"><a href="#cb19-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-339"><a href="#cb19-339" aria-hidden="true" tabindex="-1"></a><span class="fu">saveit</span> (  master_xl, lookup_tables, df_recoded,</span>
+<span id="cb19-340"><a href="#cb19-340" aria-hidden="true" tabindex="-1"></a>         <span class="at">string=</span><span class="fu">c</span>(<span class="st">&quot;arrests_original&quot;</span>, <span class="st">&quot;lookup_tables&quot;</span>, <span class="st">&quot;arrests_recoded&quot;</span>),</span>
+<span id="cb19-341"><a href="#cb19-341" aria-hidden="true" tabindex="-1"></a>         <span class="at">file=</span><span class="st">&quot;data/processed/arrests.Rda&quot;</span>)</span>
+<span id="cb19-342"><a href="#cb19-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-343"><a href="#cb19-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-344"><a href="#cb19-344" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-345"><a href="#cb19-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-346"><a href="#cb19-346" aria-hidden="true" tabindex="-1"></a><span class="fu">## Diagnostics</span></span>
+<span id="cb19-347"><a href="#cb19-347" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-348"><a href="#cb19-348" aria-hidden="true" tabindex="-1"></a>It&#39;s still not entirely clear what these columns represent, so I wanted</span>
+<span id="cb19-349"><a href="#cb19-349" aria-hidden="true" tabindex="-1"></a>to make some charts of their frequency and how they relate to one</span>
+<span id="cb19-350"><a href="#cb19-350" aria-hidden="true" tabindex="-1"></a>another.</span>
+<span id="cb19-351"><a href="#cb19-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-354"><a href="#cb19-354" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb19-355"><a href="#cb19-355" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: add-libraries-for-analysis</span></span>
+<span id="cb19-356"><a href="#cb19-356" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="st">&quot;reactable&quot;</span>, <span class="st">&quot;reactablefmtr&quot;</span>, <span class="st">&quot;DT&quot;</span>, <span class="st">&quot;janitor&quot;</span>, <span class="st">&quot;skimr&quot;</span>, <span class="st">&quot;GGalley&quot;</span>)</span>
+<span id="cb19-357"><a href="#cb19-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-358"><a href="#cb19-358" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-359"><a href="#cb19-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-360"><a href="#cb19-360" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Is there a way to look at Kavanaugh stops from this?</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
