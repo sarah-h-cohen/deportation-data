@@ -3,6 +3,11 @@ date: last-modified
 title: Untitled
 subtitle: ""
 
+project:
+  type: website
+  output-dir: docs
+
+
 format:
   scdefault-html:   #/ requires _quarto.yml in root of project folder
     code-overflow: wrap
@@ -14,13 +19,13 @@ format:
     toc: true
 
 execute:
-  echo: false
+  echo: true
   warning: false
   message: false
   error: true
   cache: false
   include: true
-  eval: true
+  eval: false
 
 extensions:
   - _extensions/scdefault
@@ -30,3 +35,28 @@ extensions:
 engine:
   knitr
 
+website:
+  navbar:
+    background: primary
+    left:
+      - text: "Home"
+        href: documentation/documentation.qmd
+      - text: "Common data"
+        href: documentation/docs-alldata.qmd
+      - text: "Arrests"
+        href: documentation/docs-arrests.qmd
+      - href: documentation/docs-backgrounder.qmd
+        text: "Backgrounder"
+
+
+custom-callout:
+  todo:
+    color: "#325d88"
+    title: "TODO"
+    icon: ""
+  question:
+    color: red
+    title: "Questions"
+
+filters:
+- custom-callout

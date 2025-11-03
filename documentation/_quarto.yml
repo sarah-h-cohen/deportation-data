@@ -1,8 +1,4 @@
-
-project:
-  type: website
-  output-dir: _output
-
+# all of the other stuff is in the main _quarto.yml
 format:
   scdefault-html:
     toc: true
@@ -11,32 +7,4 @@ format:
       body-width: 1000px
       margin-width: 200px
     callout-icon: false
-    code-overflow: wrap
 
-extensions:
-  - scdefault
-  - coatless-quarto/custom-callout
-
-website:
-  navbar:
-    background: primary
-    left:
-      - text: "Home"
-        href: documentation.qmd
-      - text: "Common data"
-        href: docs-alldata.qmd
-      - docs-arrests.qmd
-      - href: docs-backgrounder.qmd
-        text: "Backgrounder"
-
-custom-callout:
-  todo:
-    color: "#325d88"
-    title: "TODO"
-    icon: ""
-  question:
-    color: red
-    title: "Questions"
-
-filters:
-- custom-callout

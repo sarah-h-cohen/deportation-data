@@ -5,8 +5,5 @@ documentation/background/
 .vscode
 working/
 .quarto
-utilities/
 *_cache/
-
-
 /.quarto/

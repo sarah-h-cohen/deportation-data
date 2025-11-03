@@ -18,8 +18,13 @@ execute:
 engine: knitr
 ---
 
+The `encounters` table is supposed to log each encounter with a person that ICE suspects, but it's unclear how complete it is. An encounter could mean a lot of things -- the most frequent is a fingerprint match with a local jail. But it can also mean street encounters. It's important to remember that an encounter might not be of someone who tells the truth or someone who is known to ICE.
 
-/Users/sarah/Github/deportation-data/data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_Encounters_07312025.xlsx
+It appears to be of less use on its own than as part of a case contiuum. There's very little geographic detail, making it more interesting to trace cases through the system than to produce stories on its own.
+(At a national level, could have information for people who were NOT detained , arrested or removed, but it's unclear how we'd get to that.)
+
+There are still no US citizens purportedly in this data. The ones that I've found online were people detained not in ICE facilities (or arrested by ICE for immigration violations) but people arrested and put into federal law enforcement faciltities.
+
 
 ```{r}
 #| label: setup
@@ -55,26 +60,29 @@ xl_filename <- "data/raw/ddp/2025-ICLI-00019_2024-ICFO-39357_ERO_Encounters_0731
 
 ```
 
-The encounters is supposed to log each encounter with a person that ICE suspects, but it's unclear how complete it is. An encounter could mean a lot of things -- the most frequent is a fingerprint match with a local jail. But it can also mean street encounters. It's important to remember that an encounter might not be of someone who tells the truth or someone who is known to ICE.
+## Read Excel files
+
 
 ```{r}
 #| label: get-workbook-only
 #| eval: false
+#| code-fold: true
 
 # this is slow. But loading the full workbook to get the ranges is also slow. I could
 # skip this because i know you skip 6 rows, but ...
 wb <- wb_load(here(xl_filename))
 
+
 ```
 
 
-The `openxlsx2` library has a much better way to get the named regions: you can tell it to include the tables, which returns a data frame that you can filter for only tables types.
 
 
 
 ```{r}
 #| label: get-xl-data-frames
 #| code-fold: true
+#| eval: false
 
 table_ranges <- wb_get_named_regions( wb, tables=TRUE)  |>
   filter ( value == "table") |>
@@ -82,22 +90,77 @@ table_ranges <- wb_get_named_regions( wb, tables=TRUE)  |>
 
 dfs <- map ( table_ranges, \(x) wb_to_df (wb, named_region = x))
 
-full_df <- dfs |>
+master_xl_encounters <- dfs |>
   list_rbind() |>
   clean_names() |>
   select ( - c( final_program_group, birth_date, alien_file_number:eid_subject_id)) |>
   # sadly, there is no time element in the event_date or departed_date.
   mutate ( across ( c (event_date, final_order_date), as_date))
+  rowid_to_column()
 
-glimpse(full_df)
+glimpse(master_xl_encounters)
+
+
 ```
 
-A quick review of this file suggests that it's of less use on its own than as part of a continuum. It would be interesting from a national perspective , but less so from local.
+```{r}
+#| label: save-interim
+#| eval: false
+#| echo: false
 
-What it would have that the others don't is people who were NOT detained and were NOT arrested and were NOT removed, but it's unclear how we'd get to that
+# save this so that I can pick it up again later on. Everything from here above is set to eval: false to speed up rendering
 
-There are still no US citizens purportedly in this data. The ones that I've found online were people detained not in ICE facilities (or arrested by ICE for immigration violations) but people arrested and put into federal law enforcement faciltities. Still, it's useful to see how they come across. Here are a few cases that I might want to look up across datasets:
+saveRDS(master_xl_encounters, here("data/interim/encounters_xl_tables.RDS"))
+rm(list=ls())
 
-* 6/24/25
 
-2025-06-23
+```
+
+
+## Basic cleanup
+
+```{r}
+#| label: load-interim-data
+
+master_xl <-
+  readRDS(here("data/interim/encounters_xl_tables.RDS"))
+
+
+```
+
+
+### Duplicates
+
+I'm not taking out apparent duplicates in this file because so many of them have missing unique identifiers. These encounters can happen en masse, and without the unique ID's we can't distinguish between the same person on the same day, or something else. The arrest analysis suggests this is a bit less of a problem than we'd expect, where only about 5000 rows had no unique identifier.
+
+```{r}
+#| label: create-data-table
+
+DT <- copy(full_df)
+setDT(DT)
+setorderv(DT, c("person_id", "event_date", "orig_row_id"))
+
+
+```
+
+Here, I check for duplicate types
+
+```{r}
+#| label: uniqueid_dupes
+
+
+
+# compute dupe_count for each group (adds column by reference, very fast)
+DT[, dupe_count := .N, by = .(person_id, apprehension_date)]
+
+# take the last row of each group (because we've ordered the table above)
+deduped <- DT[, .SD[.N], by = .(person_id, apprehension_date)]
+
+str(deduped)
+
+
+```
+
+### Apply lookup tables for simplification
+
+
