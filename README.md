@@ -1,1 +1,1 @@
-Development of Big Local News deportation and ICE data project - always draft, never intended for general distribution
+Development of Big Local News deportation and ICE data project - public so that any collaborator can work on it, but very preliminary, lots of errors and typos, not intended for general distribution
