@@ -78,9 +78,14 @@ protests.
 ### Guardian US
 
 Will Craft, who has done a lot of work with Big Local in the past, is
-using the Deportation Data project pretty effectively, and is interested
-in being our national partner. We're scheduled to talk with him next
-week.
+using the Deportation Data project pretty effectively, and may be interested
+in being our national partner.
+
+After talking with him in late October, it seems that he is quite understandably very focused on getting to stories that haven't been done yet, warning us that this is a pretty crowded space for national stories. But he'll help us when it comes time to work with local reporters. For example, his story on [ICE violating its own policies on detention](https://www.theguardian.com/us-news/2025/oct/30/ice-hidden-detention-sites) could be localized. He has method to get to this, though it seems like it's reasonably straightforward. The big thing is that the detention data reported in aggregate by ICE is midnight -- you need to work with actual times to get this right.
+
+
+
+
 
 ### Enforcement dashboard
 
@@ -135,9 +140,9 @@ it.
 
 * LA Times reporters who have been working with all of the data
 
-* Tim Henderson, Stateline
+* Tim Henderson, Stateline - Tim's Stateline package is the one that has been localized by a lot of the smaller newsrooms affiliated with it.
 
-* Anthony DeBarros, WSJ, who analyzed the Deportation Data Project's datasets in context of other available sources, at <https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&reflink=desktopwebshare_permalink>
+* I spoke with Anthony DeBarros, WSJ, who [analyzed the Deportation Data Project's datasets](https://www.wsj.com/us-news/ice-deportations-charts-b3593e29?st=Gbjv6u&reflink=desktopwebshare_permalink) in context of other available sources. He is happy to help us, and had some good ideas for stories, such as focusing on communities that local reporters know are important in their areas.
 
 
 
@@ -157,8 +162,8 @@ TBD
 :::
 
 ::: {.question}
--   [ ] Is the unique identifier the same over time?
--   [ ] What is the impact of this coming from ICE's Integrated Enforcement Database? Is any CBP data included? Should it be?
+-   [x] Is the unique identifier the same over time? ANSWER : NO
+-   [ ] What is the impact of this coming from ICE's Integrated Enforcement Database? Is any CBP data included? (NO) Should it be?
 
 :::
 
@@ -175,13 +180,16 @@ In my project, the folder structure is:
 ```
 +-- documentation (most name are self-explanatory
 |   `-- master_data_dictionary_lookups.xlsx
+|   `-- documenatation.html is currently the root of the website, though other pages are public
 +-- programs (names are self-explanatory)
 +-- data
 |   +-- raw
 |   |  +-- ddp : Data exactly as provided by deportation data project with the original names.
-|   +-- clean: processed, including interim data sets, in R or DB form or both.
+|   +-- clean: datasets we'll eventually want to split up / share
+|   +-- interim: Datasets we won't share but are conveniences when we're getting to clean
 +-- share
 |   +-- data: shared datasets in any form
+|   +-- code: any SQL , R, Python code we want to share with people
 
 ```
 :::

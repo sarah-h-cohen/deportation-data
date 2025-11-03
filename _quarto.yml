@@ -26,6 +26,7 @@ execute:
   cache: false
   include: true
   eval: false
+  freeze: auto
 
 extensions:
   - _extensions/scdefault

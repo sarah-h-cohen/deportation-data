@@ -7,3 +7,4 @@ working/
 .quarto
 *_cache/
 /.quarto/
+/_freeze/
